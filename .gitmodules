@@ -1,0 +1,3 @@
+[submodule "libs/IBS"]
+	path = libs/IBS
+	url = https://github.com/dougbel/IBS.git
