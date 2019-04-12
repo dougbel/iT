@@ -5,10 +5,14 @@
 #include <pcl/common/norms.h>
 #include <pcl/common/io.h>
 #include <pcl/io/pcd_io.h>
+#include <pcl/search/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/extract_indices.h>
 
-#include <ibs.h>
+
+
+#include "ibs.h"
+#include "util_it.h"
 
 
 /**

@@ -7,6 +7,7 @@
 #include <pcl/filters/extract_indices.h>
 
 #include "it.h"
+#include "StopWatch.h"
 
 
 int main(int argc, char *argv[])
@@ -24,9 +25,25 @@ int main(int argc, char *argv[])
     
    IT itcalculator(cloud_scene,cloud_object);
     
-    
-    
-    
-    
+   itcalculator.calculate();
+   /*  
+   pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ibs_filtered (new pcl::PointCloud<pcl::PointXYZ>);
+   pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *cloud_ibs_filtered);
+   
+   pcl::PolygonMesh mesh ;
+   
+   StopWatch sw;
+   mesh = Util_iT::meshFromPointCloud(cloud_ibs_filtered);
+   std::cout << "tiempo 1 " << sw.ElapsedMs() << std::endl;
+   
+   
+   pcl::io::savePLYFile ("mesh.ply", mesh);
+  
+   sw.Restart();
+   mesh = Util_iT::meshFromPointCloudSlower(cloud_ibs_filtered);
+   std::cout << "tiempo 2 " << sw.ElapsedMs() << std::endl; 
+   
+   pcl::io::savePLYFile ("meshslow.ply", mesh);*/
+   
     return EXIT_SUCCESS;
 }

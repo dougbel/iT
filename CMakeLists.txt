@@ -9,6 +9,7 @@ project(it_lib)
 
 # Find PCL library
 find_package(PCL 1.8 REQUIRED)
+find_package (Eigen3 REQUIRED )
 add_definitions(${PCL_DEFINITIONS})
 
 
@@ -45,6 +46,7 @@ include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${QHULL_INCLUDE_DIR})
 include_directories(${IBS_HEADERS_DIR})
 include_directories(${IT_HEADERS_DIR})
+include_directories(${EIGEN3_INCLUDE_DIR})
 
 
 #add_library(IT_lib STATIC  ${IT_SOURCES} )
