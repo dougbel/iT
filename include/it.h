@@ -9,6 +9,8 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/extract_indices.h>
 
+#include <limits>
+
 
 
 #include "ibs.h"
