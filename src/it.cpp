@@ -72,9 +72,7 @@ void IT::calculate(){
     double  sumSmooth = 0;
     int     knn       = 5;
     
-//     std::vector<std::vector<int> > allNeighbors(ibsFiltered->size(),std::vector<int>(knn,1)); this variable is not used
-    
-    
+   
     std::vector<int> bad_ids;
     // Try to ingnore "bad vectors" which would be something very large (silly)
     //int somethingSilly=1000; // TODO this must change
@@ -84,10 +82,7 @@ void IT::calculate(){
     
     for(int i=0;i<ibsFiltered->size();i++)
     {
-        
-//         pcl::PointCloud<pcl::PointXYZ>::Ptr     disp_n(new PointCloud); //this variable is not used
-//         pcl::PointCloud<pcl::PointXYZRGB>::Ptr  disp_centre(new PointCloudC); //this variable is not used
-        
+               
         pcl::PointXYZ ibs_point = ibsFiltered->at(i);
         
         int num_neighbours = kdtreeSCN.nearestKSearch(ibs_point,knn,NNidSC,NNdistSC);
@@ -97,83 +92,131 @@ void IT::calculate(){
             
             Eigen::Vector3f resultant(0,0,0);
             Eigen::Vector3f scaled_v;
+            float norm_resultant;
+            float norm_scaled_v;
             
             for(int j=0;j<knn;j++)
             {
-//                 allNeighbors.at(i).at(j) = NNidSC.at(j); // this variable is not used
                 
-                pcl::PointXYZ sc = sceneCloudFiltered->at( NNidSC.at(j) );
+                pcl::PointXYZ sc;
                 
-                Eigen::Vector3f component( sc.x-ibs_point.x,sc.y-ibs_point.y,sc.z-ibs_point.z );
+                Eigen::Vector3f component;
+                float norm_component;
+                
+                
+                sc             = sceneCloudFiltered->at( NNidSC.at(j) );
+                component      = Eigen::Vector3f( sc.x-ibs_point.x,sc.y-ibs_point.y,sc.z-ibs_point.z );
+                norm_component = component.norm();
+                
                 
                 if(component[2]>somethingSilly && j==0){
-                    
                     //this means the provenance vector goes in a different direction to the scene POSSIBLE penetration of the IBS
                     bad_ids.push_back(i);
-//                     bad_flag=true;
                 }
-                resultant += component;
-//                 disp_n->push_back(sc);
                 if(j==0)
                 {
                     // first NN is used for provenance vectors
-//                     pcl::PointXYZRGB dp(0,255,0);
-//                     dp.x=ibs_point.x;
-//                     dp.y=ibs_point.y;
-//                     dp.z=ibs_point.z;
-//                     disp_centre->push_back(dp); // this variable is not used
                     pcl::PointNormal pn;
-                    pn.x = ibs_point.x;
+                    
+                    pn.x = ibs_point.x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
                     pn.y = ibs_point.y;
                     pn.z = ibs_point.z;
                     
-//                     pcl::PointXYZ scp=sceneCloudFiltered->at(NNidSC.at(j));
-//                     Eigen::Vector3f nVector(scp.x-ibs_point.x,scp.y-ibs_point.y,scp.z-ibs_point.z);
-//                     scaled_v=nVector;
-                    scaled_v = component;
-                    
-//                     if(i==0)  // I assigned extrem values to avoid this "if"
-//                     {
-//                         minV=maxV=nVector.norm();
-//                     }
-//                     else
-//                     {
-                    if(minV > component.norm())
-                        minV = component.norm();
-                    if(maxV < component.norm())
-                        maxV = component.norm();
-//                     }
-                    sum += component.norm();
-                    //nVector.normalize();
                     pn.normal_x = component[0];
                     pn.normal_y = component[1];
                     pn.normal_z = component[2];
+                    
+                    scaled_v      = component;
+                    norm_scaled_v = norm_component;
+                    
+                    if(minV > norm_component)
+                        minV = norm_component;
+                    if(maxV < norm_component)
+                        maxV = norm_component;
+                    
+                    sum += norm_component;      // it seems that this is unuseful
+                
+                    
                     field->push_back(pn);
                 }
+                
+                resultant += component;
             }
             
             //"smmother" provenance vector
-            scaled_v = scaled_v.norm() * resultant.normalized();
-            smoothField->push_back(pcl::Normal(scaled_v[0],scaled_v[1],scaled_v[2]));
-//             if(i==0)  // I assigned extrem values to avoid this "if"
-//             {
-//                 minS=maxS=resultant.norm();
-//             }
-//             else
-//             {
-                if( minS > resultant.norm() )
-                    minS = resultant.norm();
-                if( maxS < resultant.norm() )
-                    maxS = resultant.norm();
-//             }
-            sumSmooth += scaled_v.norm();
+            scaled_v       = norm_scaled_v * resultant.normalized();
+            norm_resultant = resultant.norm();
+            
+            smoothField->push_back( pcl::Normal(scaled_v[0],scaled_v[1],scaled_v[2]) );
+
+            if( minS > norm_resultant )
+                minS = norm_resultant;
+            if( maxS < norm_resultant )
+                maxS = norm_resultant;
+
+            sumSmooth += scaled_v.norm();   //it seems unuseful
         }
-//         bad_flag=false;
     }
     
     
 
-   
+    std::cout<<"Tensor before filtering "<<ibsFiltered->size();
+    
+    //If there were some "bad" provenance vectors remove them
+    if(bad_ids.size()>0)
+    {
+        pcl::ExtractIndices<pcl::Normal> extractN;
+        pcl::ExtractIndices<pcl::PointNormal> extractF;
+        pcl::ExtractIndices<pcl::PointXYZ> extractP;
+        
+        pcl::PointIndices::Ptr outliers (new pcl::PointIndices ());
+        
+        outliers->indices = bad_ids;
+        
+        // Extract the outliers
+        extractN.setInputCloud (smoothField);
+        extractF.setInputCloud(field);
+        extractP.setInputCloud(ibsFiltered);
+
+
+        extractN.setIndices (outliers);
+        extractF.setIndices(outliers);
+        extractP.setIndices(outliers);
+
+
+        extractN.setNegative (true);
+        extractF.setNegative(true);
+        extractP.setNegative(true);
+
+        extractN.filter (*smoothField);
+        extractF.filter (*field);
+        extractP.filter (*ibsFiltered);
+    }
+    
+    
+    //This is a cleaner tensor/ibs, which does not have those bad prov vectors
+    PointCloud::Ptr copyIBS(new PointCloud);
+//     if(bad_ids.size()<1)
+        pcl::copyPoint(*ibsFiltered,*copyIBS);
+//     else
+//     {
+//         int aux_id=0;
+//         int bad=bad_ids.at(aux_id);
+//         for(int i=0;i<ibsFiltered->size( );i++)
+//         {
+//             if(i==bad)
+//             {
+//                 aux_id+=1;
+//                 if(aux_id<bad_ids.size())
+//                     bad=bad_ids.at(aux_id);
+//                 continue;
+//             }
+//             else
+//             {
+//                 copyIBS->push_back(ibsFiltered->at(i));
+//             }
+//         }
+//     }
 
     
     
