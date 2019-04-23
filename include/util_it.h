@@ -24,7 +24,7 @@
 class Util_iT{
 public:
     /**
-    * Generates a mesh having as input a point cloud, using the Greedy Projection Triangulation methodrchMethod
+    * @brief Generates a mesh having as input a point cloud, using the Greedy Projection Triangulation methodrchMethod
     * 
     * @param cloud The input point cloud
     * @return The mesh calculated
@@ -80,7 +80,7 @@ public:
     
 
     /**
-    * Generates a mesh having as input a point cloud, using the Poisson methodrchMethod
+    * @brief Generates a mesh having as input a point cloud, using the Poisson methodrchMethod
     * 
     * @param cloud : The input point cloud
     * @return The mesh calculated
@@ -113,7 +113,7 @@ public:
     
     
     /**
-    * Calculates the normals associated to a point cloud and return an structure with points and normals
+    * @brief Calculates the normals associated to a point cloud and return an structure with points and normals
     * 
     * @param cloud Input point cloud
     * @return Point cloud with 3D points and normals associated to them
@@ -150,7 +150,128 @@ public:
         
         return cloud_smoothed_normals;
     }
+    
+    
+    
+    /**
+    * @brief Realized the mapping of magnitudes in a Point Cloud of Normals, from the rmagnitudes range in the point cloud given to a desired one [min_mapped, max_mapped]. 
+    *
+    * @param point_normal_cloud The point cloud to be modified.
+    * @param min_mapped Desired minimum mapped value.
+    * @param max_mapped Desired maximum mapped value.
+    * @return pcl::PointCloud< PointT >::Ptr
+    */
+    static pcl::PointCloud<pcl::Normal>::Ptr mapMagnitudes(pcl::PointCloud<pcl::Normal>::Ptr point_normal_cloud, float min_mapped, float max_mapped){
+        
+        float max_original = std::numeric_limits<float>::min();
+        float min_original = std::numeric_limits<float>::max();
+        
+        pcl::Normal n;
+        float mag ;
+        
+         for(int i = 0; i < point_normal_cloud->size(); i++)
+        {
+            n = point_normal_cloud->at(i);
+            
+            mag = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
+            
+            if( min_original > mag )
+                min_original = mag;
+            if( max_original < mag )
+                max_original = mag;
+        }
+        
+        return Util_iT::mapMagnitudes(point_normal_cloud, min_original, max_original, min_mapped, max_mapped);
+    }
+    
+    
+    /**
+    * @brief Realized the mapping of magnitudes in a Point Cloud of Normals, from a given range [min_original_range, max_original_range] to a desired one [min_mapped, max_mapped]. If values in the given point cloud exced the ones established the rule of proportions will be applied and the output values also will exced the stablished mapped values
+    * 
+    * @param point_normal_cloud The point cloud to be modified
+    * @param min_original_range value of minimum original magnitude
+    * @param max_original_range value of maximum oroginal magnitude
+    * @param min_mapped Value of minimun mapped value
+    * @param max_mapped Value of maximun mapped value
+    * @return pcl::PointCloud< PointT >::Ptr
+    */
+    static pcl::PointCloud<pcl::Normal>::Ptr mapMagnitudes(pcl::PointCloud<pcl::Normal>::Ptr point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+        
+        pcl::PointCloud<pcl::Normal>::Ptr mappedCloud (new pcl::PointCloud<pcl::Normal>);
+
+        pcl::Normal n;
+        
+        Eigen::Vector3f oldNormal;
+        
+        Eigen::Vector3f newNormal;
+        float mapped_mag;
+        
+        // Map every vector in the tensor
+        for(int i=0;i<point_normal_cloud->size();i++)
+        {
+            n = point_normal_cloud->at(i);
+            
+            oldNormal = Eigen::Vector3f(n.normal_x,n.normal_y,n.normal_z);
+            
+            mapped_mag = Util_iT::getValueProporcionsRule( oldNormal.norm(), min_original_range, max_original_range, min_mapped, max_mapped );
+            
+            newNormal= mapped_mag * oldNormal.normalized();
+            
+            mappedCloud->at(i) = pcl::Normal(newNormal[0], newNormal[1], newNormal[2]);
+
+        }
+
+        return mappedCloud;
+    }
+    
+    
+
+    /**
+    * @brief Maps a given value from one given range of values (min_in, max_in)  to another(min_mapped, max_mapped)
+    * 
+    * @param value_in Value to be mapped
+    * @param min_original_range Min value of the original range of values
+    * @param max_original_range Max value of the original range of values
+    * @param min_mapped Min value of mapped range
+    * @param max_mapped Max valur of mapped range
+    * @return The mapped value in the mapped range
+    */
+    static inline float getValueProporcionsRule(float value_in, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+        return ( value_in - min_original_range) * (max_mapped- min_mapped) / (max_original_range - min_original_range) + min_mapped;
+    }
+
+        
+    
+    /**
+    * @brief Find the index cloud asociated to the closest point to a given "query_point"   
+    * 
+    * @param cloud The point cloud in which the search will be realized.
+    * @param query_point The point
+    * @return Index asociated to the nearest point in the point cloud
+    */
+    static int indexOfClosestPointInACloud ( PointCloudT::Ptr cloud, pcl::PointXYZ query_point)
+    {
+        pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
+        kdtree.setInputCloud(cloud);
+        std::vector<int> NNidx(1);
+        std::vector<float> NNdist(1);
+        
+        if(kdtree.nearestKSearch (query_point, 1, NNidx, NNdist) > 0 )
+        {
+            return NNidx.at(0);
+        }
+        else
+        {
+            std::cout<<" NN not found "<<std::endl;
+            return -1;
+        }
+    }
+        
 };
 
+    
+
+    
+    
 
 #endif
