@@ -42,6 +42,21 @@ public:
     
 private:
     
+    //SAMPLING SECTION    
+    
+    /**
+    * @brief Generates the indexes of a sampling size 'sampleSize', such index are choosen throught a distribution of probability defined by a vector og weigths 'weights'
+    * 
+    * @param weights p_weights:...
+    * @param sampleSize p_sampleSize:...
+    * @param aux p_aux:...
+    * @return std::vector< int >
+    */
+    std::vector<int> sampleWithProbability( std::vector< float > weights, int sampleSize );
+    
+    std::vector<int> sampleUniformProbability( int originalSize, int sampleSize );
+   
+    
     
 //     pcl::PointXYZ center_ROI;
 //     float radio_ROI;
