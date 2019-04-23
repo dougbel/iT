@@ -8,6 +8,9 @@
 #include <pcl/search/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/common/transforms.h>
+
+#include <boost/filesystem.hpp>
 
 #include <limits>
 
@@ -15,6 +18,8 @@
 
 #include "ibs.h"
 #include "util_it.h"
+#include "type_point_it.h"
+#include "StopWatch.h"
 
 
 /**
@@ -23,7 +28,7 @@
 class IT
 {
 public:
-    IT(pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ>::Ptr object);
+    IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ>::Ptr object, std::string name_affordance, std::string name_object);
     
     void calculate();
     
@@ -36,7 +41,8 @@ public:
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloud;
     pcl::PointCloud<pcl::PointXYZ>::Ptr objectCloud;
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr bigCloud;
+    std::string affordanceName;
+    std::string objectName;
     
     
     
@@ -57,16 +63,28 @@ private:
     std::vector<int> sampleUniformProbability( int originalSize, int sampleSize );
    
     
+    //SPINNING SECTION
     
-//     pcl::PointXYZ center_ROI;
-//     float radio_ROI;
-//     bool is_ROI;
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; //TODO this variables are used to calculate the spin of iT
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO this variables are used to calculate the spin of iT
     
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr soi_sceneCloud;
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr soi_queryObjectCloud;
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr soi_bigCloud;
+    bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
     
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr sphereExtraction(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in , pcl::PointXYZ point_pivot, float radio);
+    bool createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh, int orientations=8,bool uniform=false);
+    
+    
+    void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
+    
+    void rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,bool origin);
+    
+    void rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,pcl::PointXYZ pivot);
+    
+    void translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in,  pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation);
+     
+    void translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in,  pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation, pcl::PointXYZ reference);
+    
+    //std::vector<int> savingInfoFileName(std:string  ); //TODO
+    
 
 };
 

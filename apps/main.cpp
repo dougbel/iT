@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     pcl::io::loadPCDFile(file_object, *cloud_object);
     
     
-   IT itcalculator(cloud_scene,cloud_object);
+   IT itcalculator( cloud_scene, cloud_object, "Place", "bowl");
     
    itcalculator.calculate();
    /*  
