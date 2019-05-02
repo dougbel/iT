@@ -42,25 +42,25 @@ void IT::calculate(){
     sceneCloudFiltered = Util::sphereExtraction(sceneCloud, middlePointObject,radio);
 
     
-
+ StopWatch sw;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // calculate the Interaction Bisector Surface (IBS)
-    IBS ibs_calculator(sceneCloudFiltered,objectCloud);
-StopWatch sw;
-sw.Restart();
-    ibs_calculator.calculate();
-std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
-    
-    
-sw.Restart();
-    //as IBS extend to infinity, filter IBS
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
-    ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
+//     IBS ibs_calculator(sceneCloudFiltered,objectCloud);
+
+// sw.Restart();
+//     ibs_calculator.calculate();
+// std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
+//     
+//     
+// sw.Restart();
+//     //as IBS extend to infinity, filter IBS
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
+//     ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
     
     
 //     //TODO erase this, it is only for developing porpouses
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
-//     pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Searching nearest neighbours (from IBS to ) and calculating smoot provenance vector
@@ -239,14 +239,31 @@ sw.Restart();
     float min_out = 1;
     
     //Init probabilities for sampling
-    std::vector<float> probs( field->size() );
+    std::vector<float> probs = getSamplingProbabilities(field, minV, maxV);
    
     //The mapping or normalization options
-    int myMap = 2;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
+    int myMap = 0;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
 
     // Newer min/max after filtering needs to be recomputed
     float nMax = std::numeric_limits<float>::min();
     float nMin = std::numeric_limits<float>::max();
+     
+    
+    //BEGINING Mapping magnitudes of normal [0,1]
+    pcl::PointCloud<pcl::Normal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::Normal>);
+    pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
+    //pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::Normal>);
+    //pcl::copyPointCloud(*field,*fieldNewSampling);
+    //TODO change this by smoothField and field repectively
+    Util_iT::mapMagnitudes( *smoothFieldNewSampling, minV, maxV, 1, 0 );
+    //Util_iT::mapMagnitudes( *fieldNewSampling, minV, maxV, 1, 0 );
+    nMin=0;
+    nMax=1;
+    //END Mapping magnitudes of normal [0,1]
+    
+    
+    
+    
     
     // Map every vector in the tensor
     for(int i=0;i<field->size();i++)
@@ -262,7 +279,10 @@ sw.Restart();
         // Probability is inverse of magnitude
         // Longer provenance vectors -> lower prob of being sampled
         // Smaller provenance vectors are associated to regions where objects are closer together
-        probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
+        //probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
+	   
+	   //std::cout<<probsNew.at(i)<< "probs "<<probs.at(i)<< std::endl;
+	   //assert(probsNew.at(i)==probs.at(i));
         
 //         std::cout <<"probs.at("<<i<<") "<< Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) << " =  " << 1-map_prob << endl;
 //         assert( ( Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) == probs.at(i) ) && "probs.at");
@@ -308,6 +328,23 @@ sw.Restart();
         smoothField->at(i).normal_x=newNormalSmooth[0];
         smoothField->at(i).normal_y=newNormalSmooth[1];
         smoothField->at(i).normal_z=newNormalSmooth[2];
+	
+	   
+	   //BEGIN THIS ZONE IS FOR TESTING mapping [0,1]
+// 	   std::cout << Util_iT::round4decimals(smoothField->at(i).normal_x) <<"*x*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) <<"   "<<
+// 		  Util_iT::round4decimals(smoothField->at(i).normal_y)  <<"*y*"<<  Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y)<<"   "<<
+// 		  Util_iT::round4decimals(smoothField->at(i).normal_z) <<"*z*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z) <<std::endl;
+// 	   std::cout << smoothField->at(i).normal_x <<"*x*"<< smoothFieldNewSampling->at(i).normal_x <<"   "<<
+// 		  smoothField->at(i).normal_y  <<"*y*"<<  smoothFieldNewSampling->at(i).normal_y <<"   "<<
+// 		 smoothField->at(i).normal_z <<"*z*"<< smoothFieldNewSampling->at(i).normal_z <<std::endl;
+// 		  
+// 	   if(Util_iT::round4decimals(smoothField->at(i).normal_x) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) || 
+// 		  Util_iT::round4decimals(smoothField->at(i).normal_y) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y) ||
+// 		  Util_iT::round4decimals(smoothField->at(i).normal_z) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z)
+// 	   )
+// 		  std::cout << "checale"<<std::endl;
+	   //END TESTING ZONE FINALIZED
+		   
 
         //Check/save new max/min in tensor field
         float mag = newNormal.norm();
@@ -603,6 +640,19 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
     }
     
 }
+
+
+ std::vector<float> IT::getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV){
+	 std::vector<float> probs( clout_in->size() );
+	 
+	 for(int i=0;i<clout_in->size();i++)
+	 {
+	   Eigen::Vector3f oldNormal( clout_in->at(i).normal_x, clout_in->at(i).normal_y, clout_in->at(i).normal_z);
+	   probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
+	 }
+	 return probs;
+	  
+ }
 
 
 bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, bool uniform)

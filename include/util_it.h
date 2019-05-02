@@ -18,6 +18,7 @@
 #include <Eigen/Dense>
 
 
+#include <math.h>
 
 
 
@@ -159,9 +160,9 @@ public:
     * @param point_normal_cloud The point cloud to be modified.
     * @param min_mapped Desired minimum mapped value.
     * @param max_mapped Desired maximum mapped value.
-    * @return pcl::PointCloud< PointT >::Ptr
+    * @return point_normal_cloud will have the values altered
     */
-    static pcl::PointCloud<pcl::Normal>::Ptr mapMagnitudes(pcl::PointCloud<pcl::Normal>::Ptr point_normal_cloud, float min_mapped, float max_mapped){
+    static void mapMagnitudes(pcl::PointCloud<pcl::Normal> &point_normal_cloud, float min_mapped, float max_mapped){
         
         float max_original = std::numeric_limits<float>::min();
         float min_original = std::numeric_limits<float>::max();
@@ -169,9 +170,9 @@ public:
         pcl::Normal n;
         float mag ;
         
-         for(int i = 0; i < point_normal_cloud->size(); i++)
+         for(int i = 0; i < point_normal_cloud.size(); i++)
         {
-            n = point_normal_cloud->at(i);
+            n = point_normal_cloud.at(i);
             
             mag = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
             
@@ -181,47 +182,46 @@ public:
                 max_original = mag;
         }
         
-        return Util_iT::mapMagnitudes(point_normal_cloud, min_original, max_original, min_mapped, max_mapped);
+        Util_iT::mapMagnitudes(point_normal_cloud, min_original, max_original, min_mapped, max_mapped);
     }
     
     
     /**
     * @brief Realized the mapping of magnitudes in a Point Cloud of Normals, from a given range [min_original_range, max_original_range] to a desired one [min_mapped, max_mapped]. If values in the given point cloud exced the ones established the rule of proportions will be applied and the output values also will exced the stablished mapped values
     * 
-    * @param point_normal_cloud The point cloud to be modified
+    * @param point_normal_cloud The point cloud to be modified 
     * @param min_original_range value of minimum original magnitude
     * @param max_original_range value of maximum oroginal magnitude
     * @param min_mapped Value of minimun mapped value
     * @param max_mapped Value of maximun mapped value
-    * @return pcl::PointCloud< PointT >::Ptr
+    * @return point_normal_cloud will have the values altered
     */
-    static pcl::PointCloud<pcl::Normal>::Ptr mapMagnitudes(pcl::PointCloud<pcl::Normal>::Ptr point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+    static void mapMagnitudes(pcl::PointCloud<pcl::Normal> &point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
         
-        pcl::PointCloud<pcl::Normal>::Ptr mappedCloud (new pcl::PointCloud<pcl::Normal>);
-
         pcl::Normal n;
         
         Eigen::Vector3f oldNormal;
-        
         Eigen::Vector3f newNormal;
+        
         float mapped_mag;
         
         // Map every vector in the tensor
-        for(int i=0;i<point_normal_cloud->size();i++)
+        for(int i=0;i<point_normal_cloud.size();i++)
         {
-            n = point_normal_cloud->at(i);
+            n = point_normal_cloud.at(i);
             
-            oldNormal = Eigen::Vector3f(n.normal_x,n.normal_y,n.normal_z);
+            oldNormal = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z);
             
             mapped_mag = Util_iT::getValueProporcionsRule( oldNormal.norm(), min_original_range, max_original_range, min_mapped, max_mapped );
             
             newNormal= mapped_mag * oldNormal.normalized();
             
-            mappedCloud->at(i) = pcl::Normal(newNormal[0], newNormal[1], newNormal[2]);
-
+            //mappedCloud->at(i) = pcl::Normal(newNormal[0], newNormal[1], newNormal[2]);
+            
+            point_normal_cloud.at(i).normal_x = newNormal[0];
+            point_normal_cloud.at(i).normal_y = newNormal[1];
+            point_normal_cloud.at(i).normal_z = newNormal[2];
         }
-
-        return mappedCloud;
     }
     
     
@@ -265,6 +265,12 @@ public:
             std::cout<<" NN not found "<<std::endl;
             return -1;
         }
+    }
+    
+    
+    static float round4decimals(float val)
+    {
+        return floorf(val * 100000) / 100000;
     }
         
 };
