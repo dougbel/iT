@@ -162,12 +162,12 @@ public:
     * @param max_mapped Desired maximum mapped value.
     * @return point_normal_cloud will have the values altered
     */
-    static void mapMagnitudes(pcl::PointCloud<pcl::Normal> &point_normal_cloud, float min_mapped, float max_mapped){
+    static void mapMagnitudes(pcl::PointCloud<pcl::PointNormal> &point_normal_cloud, float min_mapped, float max_mapped){
         
         float max_original = std::numeric_limits<float>::min();
         float min_original = std::numeric_limits<float>::max();
         
-        pcl::Normal n;
+        pcl::PointNormal n;
         float mag ;
         
          for(int i = 0; i < point_normal_cloud.size(); i++)
@@ -196,9 +196,9 @@ public:
     * @param max_mapped Value of maximun mapped value
     * @return point_normal_cloud will have the values altered
     */
-    static void mapMagnitudes(pcl::PointCloud<pcl::Normal> &point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+    static void mapMagnitudes(pcl::PointCloud<pcl::PointNormal> &point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
         
-        pcl::Normal n;
+        pcl::PointNormal n;
         
         Eigen::Vector3f oldNormal;
         Eigen::Vector3f newNormal;

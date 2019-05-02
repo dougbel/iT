@@ -73,7 +73,7 @@ void IT::calculate(){
     kdtreeSCN.setInputCloud(sceneCloudFiltered);
     
     pcl::PointCloud<pcl::PointNormal>::Ptr  field(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::PointCloud<pcl::Normal>::Ptr       smoothField(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointNormal>::Ptr  smoothField(new pcl::PointCloud<pcl::PointNormal>);
     
     
     float   maxV      = std::numeric_limits<float>::min();
@@ -159,7 +159,14 @@ void IT::calculate(){
             scaled_v       = norm_scaled_v * resultant.normalized();
             norm_resultant = resultant.norm();
             
-            smoothField->push_back( pcl::Normal(scaled_v[0],scaled_v[1],scaled_v[2]) );
+            pcl::PointNormal pn;
+		  pn.x = field->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
+		  pn.y = field->back().y;
+		  pn.z = field->back().z;
+		  pn.normal_x = scaled_v[0];
+		  pn.normal_y = scaled_v[1];
+		  pn.normal_z = scaled_v[2];
+            smoothField->push_back( pn );
 
             if( minS > norm_resultant )
                 minS = norm_resultant;
@@ -179,7 +186,7 @@ sw.Restart();
     //If there were some "bad" provenance vectors remove them
     if(bad_ids.size()>0)
     {
-        pcl::ExtractIndices<pcl::Normal> extractN;
+        pcl::ExtractIndices<pcl::PointNormal> extractN;
         pcl::ExtractIndices<pcl::PointNormal> extractF;
         pcl::ExtractIndices<pcl::PointXYZ> extractP;
         
@@ -250,7 +257,7 @@ sw.Restart();
      
     
     //BEGINING Mapping magnitudes of normal [0,1]
-    pcl::PointCloud<pcl::Normal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
     //pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::Normal>);
     //pcl::copyPointCloud(*field,*fieldNewSampling);
