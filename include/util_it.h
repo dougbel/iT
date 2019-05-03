@@ -155,14 +155,13 @@ public:
     
     
     /**
-    * @brief Realized the mapping of magnitudes in a Point Cloud of Normals, from the rmagnitudes range in the point cloud given to a desired one [min_mapped, max_mapped]. 
-    *
-    * @param point_normal_cloud The point cloud to be modified.
-    * @param min_mapped Desired minimum mapped value.
-    * @param max_mapped Desired maximum mapped value.
-    * @return point_normal_cloud will have the values altered
+    * @brief Get the max and min norms in the provenance vector associated with the point cloud
+    * 
+    * @param point_normal_cloud The point cloud to analyze
+    * @param min_mag Min found magnitude
+    * @param max_mag Max found magnitude
     */
-    static void mapMagnitudes(pcl::PointCloud<pcl::PointNormal> &point_normal_cloud, float min_mapped, float max_mapped){
+    static void getMinMaxMagnitudes(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float &min_mag, float &max_mag){
         
         float max_original = std::numeric_limits<float>::min();
         float min_original = std::numeric_limits<float>::max();
@@ -170,19 +169,19 @@ public:
         pcl::PointNormal n;
         float mag ;
         
-         for(int i = 0; i < point_normal_cloud.size(); i++)
-        {
-            n = point_normal_cloud.at(i);
+        for(int i = 0; i < point_normal_cloud->size(); i++){
+            
+            n = point_normal_cloud->at(i);
             
             mag = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
             
-            if( min_original > mag )
-                min_original = mag;
-            if( max_original < mag )
-                max_original = mag;
+            if( min_original > mag )  min_original = mag;
+            
+            if( max_original < mag )  max_original = mag;
         }
         
-        Util_iT::mapMagnitudes(point_normal_cloud, min_original, max_original, min_mapped, max_mapped);
+        min_mag = min_original;
+        max_mag = max_original;
     }
     
     

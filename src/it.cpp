@@ -242,150 +242,35 @@ sw.Restart();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Generate weights for sampling of vizualization in provenance vectors   
     
-        
     //Init probabilities for sampling
     std::vector<float> probs = getSamplingProbabilities(field, minV, maxV);
    
-    //The mapping or normalization options
-    int myMap = 2;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
-
-    // Newer min/max after filtering needs to be recomputed
-    float nMax = std::numeric_limits<float>::min();
-    float nMin = std::numeric_limits<float>::max();
-     
     
-    //BEGINING Mapping magnitudes of normal [0,1]
-//     pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-//     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
-//     pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-//     pcl::copyPointCloud(*field,*fieldNewSampling);
-//     //TODO change this by smoothField and field repectively
-//     Util_iT::mapMagnitudes( *smoothFieldNewSampling, minV, maxV, 1, 0 );
-//     Util_iT::mapMagnitudes( *fieldNewSampling, minV, maxV, 1, 0 );
+    // Newer min/max after filtering needs to be recomputed
+    float nMin;
+    float nMax;
+    
+    //No mapping
+    nMin = minV;
+    nMax = maxV;
+    
+    //BEGINING Mapping norm magnitudes to [0,1]
+//     Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
+//     Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
 //     nMin=0;
 //     nMax=1;
     //END Mapping norm magnitudes to [0,1]
     
     //BEGIN Mapping norm magnituddes to [min_out, maxout]
-    float max_out = 100;
-    float min_out = 1;
+//     float min_out = 1;
+//     float max_out = 100;
+//     Util_iT::mapMagnitudesRationalFunction( *smoothField, minV, maxV, min_out, max_out );
+//     Util_iT::mapMagnitudesRationalFunction( *field, minV, maxV, min_out, max_out  );
+//     //this is because the 1/x function
+//     nMin=0;
+//     nMax=1;
+    //END Mapping norm magnituddes to [min_out, maxout]
 
-//     pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-//     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
-//     pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-//     pcl::copyPointCloud(*field,*fieldNewSampling);
-//     //TODO change this by smoothField and field repectively
-//     Util_iT::mapMagnitudesRationalFunction( *smoothFieldNewSampling, minV, maxV, min_out, max_out );
-// 	Util_iT::mapMagnitudesRationalFunction( *fieldNewSampling, minV, maxV, min_out, max_out  );
-	//this is because the 1/x function
-    //nMin=0;
-    //nMax=1;
-    //BEGIN Mapping norm magnituddes to [min_out, maxout]
-	
-	//BEGIN No mapping
-    pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
-    pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::copyPointCloud(*field,*fieldNewSampling);
-// 	nMin = minV;
-// 	nMax = maxV;
-	//END No mapping
-	
-    
-    
-    // Map every vector in the tensor
-    for(int i=0;i<field->size();i++)
-    {
-        Eigen::Vector3f oldNormal( field->at(i).normal_x, field->at(i).normal_y, field->at(i).normal_z);
-        //float map_prob = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 0, 1);
-        //(oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0;
-        
-//         std::cout <<"map_prob "<< map_prob << " =  " << ((oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0 ) << endl;
-//         assert(map_prob == ((oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0 ) && "map_prob");
-        
-        
-        // Probability is inverse of magnitude
-        // Longer provenance vectors -> lower prob of being sampled
-        // Smaller provenance vectors are associated to regions where objects are closer together
-        //probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
-	   
-	   //std::cout<<probsNew.at(i)<< "probs "<<probs.at(i)<< std::endl;
-	   //assert(probsNew.at(i)==probs.at(i));
-        
-//         std::cout <<"probs.at("<<i<<") "<< Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) << " =  " << 1-map_prob << endl;
-//         assert( ( Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) == probs.at(i) ) && "probs.at");
-        
-
-        
-        Eigen::Vector3f oldNormalSmooth(smoothField->at(i).normal_x,smoothField->at(i).normal_y,smoothField->at(i).normal_z);
-        
-        Eigen::Vector3f newNormal,newNormalSmooth;
-        
-        if(myMap==1)
-        {
-            float mapped_mag  = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, min_out, max_out );
-//             std::cout <<"mapped_mag   "<< mapped_mag << " =  " << (( oldNormal.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out )<< endl;
-//             assert(( mapped_mag == (( oldNormal.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out )) && " mapped_mag no corresponding value");
-            
-            
-            
-            float mapped_mag2 = Util_iT::getValueProporcionsRule( oldNormalSmooth.norm(), minV, maxV, min_out, max_out );
-//             std::cout <<"mapped_mag2  "<< mapped_mag2 << " =  " << (( oldNormalSmooth.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out) << endl;
-//             assert((mapped_mag2 == (( oldNormalSmooth.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out)) && "mapped_mag2");
-
-            newNormal         = ( 1 / mapped_mag) * oldNormal.normalized();
-            newNormalSmooth   = ( 1 / mapped_mag2) * oldNormalSmooth.normalized();
-    
-            
-        }
-        if(myMap==0)
-        {
-            newNormal       = probs.at(i) * oldNormal.normalized();
-            newNormalSmooth = probs.at(i) * oldNormalSmooth.normalized();
-        }
-        if(myMap==2)
-        {
-            newNormal       = oldNormal;
-            newNormalSmooth = oldNormalSmooth;
-        }
-        
-        field->at(i).normal_x = newNormal[0];
-        field->at(i).normal_y = newNormal[1];
-        field->at(i).normal_z = newNormal[2];
-
-        smoothField->at(i).normal_x=newNormalSmooth[0];
-        smoothField->at(i).normal_y=newNormalSmooth[1];
-        smoothField->at(i).normal_z=newNormalSmooth[2];
-        
-
-        //BEGIN THIS ZONE IS FOR TESTING
-        std::cout << Util_iT::round4decimals(smoothField->at(i).normal_x) <<"*x_smooth*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) <<"   "<<
-        Util_iT::round4decimals(smoothField->at(i).normal_y)  <<"*y_smooth*"<<  Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y)<<"   "<<
-        Util_iT::round4decimals(smoothField->at(i).normal_z) <<"*z_smooth*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z) <<std::endl;
-        if(Util_iT::round4decimals(smoothField->at(i).normal_x) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) || 
-            Util_iT::round4decimals(smoothField->at(i).normal_y) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y) ||
-            Util_iT::round4decimals(smoothField->at(i).normal_z) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z)            )
-            
-            std::cout << "checale"<<std::endl;
-
-        std::cout << Util_iT::round4decimals(field->at(i).normal_x) <<"*x_smooth*"<< Util_iT::round4decimals(fieldNewSampling->at(i).normal_x) <<"   "<<
-        Util_iT::round4decimals(field->at(i).normal_y)  <<"*y_smooth*"<<  Util_iT::round4decimals(fieldNewSampling->at(i).normal_y)<<"   "<<
-        Util_iT::round4decimals(field->at(i).normal_z) <<"*z_smooth*"<< Util_iT::round4decimals(fieldNewSampling->at(i).normal_z) <<std::endl;
-        if(Util_iT::round4decimals(field->at(i).normal_x) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_x) || 
-            Util_iT::round4decimals(field->at(i).normal_y) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_y) ||
-            Util_iT::round4decimals(field->at(i).normal_z) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_z)            )
-            
-            std::cout << "checale"<<std::endl;   
-
-        //END TESTING ZONE FINALIZED
-
-
-        //Check/save new max/min in tensor field
-        float mag = newNormal.norm();
-        if(mag<nMin)    nMin=mag;
-        if(mag>nMax)    nMax=mag;
-    }
-    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sampling provenance vector to construct the descriptor
     

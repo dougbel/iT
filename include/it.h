@@ -69,6 +69,14 @@ private:
     Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO this variables are used to calculate the spin of iT
     
     
+    /**
+    * @brief Generate the sampling probabilities, the smaller norm value, the most probability assigned
+    * 
+    * @param clout_in The point cloud to analyse (norms of normals)
+    * @param minV min value, associated with the higher probability
+    * @param maxV max value, associated with the lowesr probability
+    * @return The vector of probabilities associated to each norm in the point cloud
+    */
     std::vector<float> getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV);
     
     bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
