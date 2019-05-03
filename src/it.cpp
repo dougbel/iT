@@ -242,14 +242,12 @@ sw.Restart();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Generate weights for sampling of vizualization in provenance vectors   
     
-    float max_out = 100;
-    float min_out = 1;
-    
+        
     //Init probabilities for sampling
     std::vector<float> probs = getSamplingProbabilities(field, minV, maxV);
    
     //The mapping or normalization options
-    int myMap = 0;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
+    int myMap = 2;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
 
     // Newer min/max after filtering needs to be recomputed
     float nMax = std::numeric_limits<float>::min();
@@ -257,19 +255,42 @@ sw.Restart();
      
     
     //BEGINING Mapping magnitudes of normal [0,1]
+//     pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
+//     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
+//     pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
+//     pcl::copyPointCloud(*field,*fieldNewSampling);
+//     //TODO change this by smoothField and field repectively
+//     Util_iT::mapMagnitudes( *smoothFieldNewSampling, minV, maxV, 1, 0 );
+//     Util_iT::mapMagnitudes( *fieldNewSampling, minV, maxV, 1, 0 );
+//     nMin=0;
+//     nMax=1;
+    //END Mapping norm magnitudes to [0,1]
+    
+    //BEGIN Mapping norm magnituddes to [min_out, maxout]
+    float max_out = 100;
+    float min_out = 1;
+
+//     pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
+//     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
+//     pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
+//     pcl::copyPointCloud(*field,*fieldNewSampling);
+//     //TODO change this by smoothField and field repectively
+//     Util_iT::mapMagnitudesRationalFunction( *smoothFieldNewSampling, minV, maxV, min_out, max_out );
+// 	Util_iT::mapMagnitudesRationalFunction( *fieldNewSampling, minV, maxV, min_out, max_out  );
+	//this is because the 1/x function
+    //nMin=0;
+    //nMax=1;
+    //BEGIN Mapping norm magnituddes to [min_out, maxout]
+	
+	//BEGIN No mapping
     pcl::PointCloud<pcl::PointNormal>::Ptr smoothFieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
     pcl::copyPointCloud(*smoothField,*smoothFieldNewSampling);
-    //pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::Normal>);
-    //pcl::copyPointCloud(*field,*fieldNewSampling);
-    //TODO change this by smoothField and field repectively
-    Util_iT::mapMagnitudes( *smoothFieldNewSampling, minV, maxV, 1, 0 );
-    //Util_iT::mapMagnitudes( *fieldNewSampling, minV, maxV, 1, 0 );
-    nMin=0;
-    nMax=1;
-    //END Mapping magnitudes of normal [0,1]
-    
-    
-    
+    pcl::PointCloud<pcl::PointNormal>::Ptr fieldNewSampling(new pcl::PointCloud<pcl::PointNormal>);
+    pcl::copyPointCloud(*field,*fieldNewSampling);
+// 	nMin = minV;
+// 	nMax = maxV;
+	//END No mapping
+	
     
     
     // Map every vector in the tensor
@@ -335,23 +356,29 @@ sw.Restart();
         smoothField->at(i).normal_x=newNormalSmooth[0];
         smoothField->at(i).normal_y=newNormalSmooth[1];
         smoothField->at(i).normal_z=newNormalSmooth[2];
-	
-	   
-	   //BEGIN THIS ZONE IS FOR TESTING mapping [0,1]
-// 	   std::cout << Util_iT::round4decimals(smoothField->at(i).normal_x) <<"*x*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) <<"   "<<
-// 		  Util_iT::round4decimals(smoothField->at(i).normal_y)  <<"*y*"<<  Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y)<<"   "<<
-// 		  Util_iT::round4decimals(smoothField->at(i).normal_z) <<"*z*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z) <<std::endl;
-// 	   std::cout << smoothField->at(i).normal_x <<"*x*"<< smoothFieldNewSampling->at(i).normal_x <<"   "<<
-// 		  smoothField->at(i).normal_y  <<"*y*"<<  smoothFieldNewSampling->at(i).normal_y <<"   "<<
-// 		 smoothField->at(i).normal_z <<"*z*"<< smoothFieldNewSampling->at(i).normal_z <<std::endl;
-// 		  
-// 	   if(Util_iT::round4decimals(smoothField->at(i).normal_x) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) || 
-// 		  Util_iT::round4decimals(smoothField->at(i).normal_y) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y) ||
-// 		  Util_iT::round4decimals(smoothField->at(i).normal_z) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z)
-// 	   )
-// 		  std::cout << "checale"<<std::endl;
-	   //END TESTING ZONE FINALIZED
-		   
+        
+
+        //BEGIN THIS ZONE IS FOR TESTING
+        std::cout << Util_iT::round4decimals(smoothField->at(i).normal_x) <<"*x_smooth*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) <<"   "<<
+        Util_iT::round4decimals(smoothField->at(i).normal_y)  <<"*y_smooth*"<<  Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y)<<"   "<<
+        Util_iT::round4decimals(smoothField->at(i).normal_z) <<"*z_smooth*"<< Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z) <<std::endl;
+        if(Util_iT::round4decimals(smoothField->at(i).normal_x) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_x) || 
+            Util_iT::round4decimals(smoothField->at(i).normal_y) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_y) ||
+            Util_iT::round4decimals(smoothField->at(i).normal_z) != Util_iT::round4decimals(smoothFieldNewSampling->at(i).normal_z)            )
+            
+            std::cout << "checale"<<std::endl;
+
+        std::cout << Util_iT::round4decimals(field->at(i).normal_x) <<"*x_smooth*"<< Util_iT::round4decimals(fieldNewSampling->at(i).normal_x) <<"   "<<
+        Util_iT::round4decimals(field->at(i).normal_y)  <<"*y_smooth*"<<  Util_iT::round4decimals(fieldNewSampling->at(i).normal_y)<<"   "<<
+        Util_iT::round4decimals(field->at(i).normal_z) <<"*z_smooth*"<< Util_iT::round4decimals(fieldNewSampling->at(i).normal_z) <<std::endl;
+        if(Util_iT::round4decimals(field->at(i).normal_x) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_x) || 
+            Util_iT::round4decimals(field->at(i).normal_y) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_y) ||
+            Util_iT::round4decimals(field->at(i).normal_z) != Util_iT::round4decimals(fieldNewSampling->at(i).normal_z)            )
+            
+            std::cout << "checale"<<std::endl;   
+
+        //END TESTING ZONE FINALIZED
+
 
         //Check/save new max/min in tensor field
         float mag = newNormal.norm();
