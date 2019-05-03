@@ -235,7 +235,7 @@ sw.Restart();
     // it is possible that this section is useless
     
     // Save the original provenance vectors bacause we are going to normalize
-    pcl::PointCloud<pcl::Normal>::Ptr normals_backup(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointNormal>::Ptr normals_backup(new pcl::PointCloud<pcl::PointNormal>);
     pcl::copyPointCloud(*field,*normals_backup);
     
     
@@ -299,7 +299,7 @@ sw.Restart();
     {
         //sampled by weight
         std::pair<int, double>  pW;
-        pcl::Normal n;
+        pcl::PointNormal n;
         pW.first      = keypoint_ids.at(i);
         n             = normals_backup->at(pW.first);
         pW.second     = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
@@ -308,7 +308,7 @@ sw.Restart();
         
         //sampled uniformly
         std::pair<int, double>  pwU;
-        pcl::Normal nU;
+        pcl::PointNormal nU;
         pwU.first    = keypoints_uniform.at(i);
         nU           = normals_backup->at(pwU.first);
         pwU.second   = Eigen::Vector3f(nU.normal_x, nU.normal_y, nU.normal_z).norm();
@@ -337,9 +337,9 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
 
     //Save mags in sampled mapped in 0-1 based on full tensor mags
     std::vector<float> mags_c(sampleSize);
-    std::vector<float>mags_cU(sampleSize);
+    std::vector<float> mags_cU(sampleSize);
     
-    pcl::PointCloud<pcl::Normal>::Ptr provenanceToPlot(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointNormal>::Ptr provenanceToPlot(new pcl::PointCloud<pcl::PointNormal>);
     PointCloudT::Ptr provenanceVectorsAnchor(new PointCloudT);
     std::cout<<"extracting new sample...";
     for(int i=0;i<sampleSize;i++)
@@ -347,6 +347,11 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
         
         //Saving provenance vectors sampled by WEIGHTS
         PointWithVector pv;
+        
+        pcl::PointNormal tmp1 = normals_backup->at(sortablePoints.at(i).first);
+        pcl::PointXYZ tmp2 = ibsFiltered->at(sortablePoints.at(i).first);
+        assert(tmp1.x == tmp2.x && tmp1.y == tmp2.y && tmp1.z == tmp2.z);
+        
         pv.x=ibsFiltered->at(sortablePoints.at(i).first).x;
         pv.y=ibsFiltered->at(sortablePoints.at(i).first).y;
         pv.z=ibsFiltered->at(sortablePoints.at(i).first).z;
@@ -354,7 +359,7 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
         pv.v2=normals_backup->at(sortablePoints.at(i).first).normal_y;
         pv.v3=normals_backup->at(sortablePoints.at(i).first).normal_z;
         new_sampleCloud2->push_back(pv);
-        //pcl::Normal n(pv.v1,pv.v2,pv.v3);
+        //pcl::PointNormal n(pv.v1,pv.v2,pv.v3);
         //normals_check->push_back(n);
         Eigen::Vector3f n(pv.v1,pv.v2,pv.v3);
         //Save mags in sampled mapped in 0-1 based on full tensor mags
