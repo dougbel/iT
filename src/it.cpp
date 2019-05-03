@@ -42,25 +42,25 @@ void IT::calculate(){
     sceneCloudFiltered = Util::sphereExtraction(sceneCloud, middlePointObject,radio);
 
     
-
+ StopWatch sw;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // calculate the Interaction Bisector Surface (IBS)
-    IBS ibs_calculator(sceneCloudFiltered,objectCloud);
-StopWatch sw;
-sw.Restart();
-    ibs_calculator.calculate();
-std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
-    
-    
-sw.Restart();
-    //as IBS extend to infinity, filter IBS
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
-    ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
+//     IBS ibs_calculator(sceneCloudFiltered,objectCloud);
+
+// sw.Restart();
+//     ibs_calculator.calculate();
+// std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
+//     
+//     
+// sw.Restart();
+//     //as IBS extend to infinity, filter IBS
+//     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
+//     ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
     
     
 //     //TODO erase this, it is only for developing porpouses
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
-//     pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Searching nearest neighbours (from IBS to ) and calculating smoot provenance vector
@@ -73,7 +73,7 @@ sw.Restart();
     kdtreeSCN.setInputCloud(sceneCloudFiltered);
     
     pcl::PointCloud<pcl::PointNormal>::Ptr  field(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::PointCloud<pcl::Normal>::Ptr       smoothField(new pcl::PointCloud<pcl::Normal>);
+    pcl::PointCloud<pcl::PointNormal>::Ptr  smoothField(new pcl::PointCloud<pcl::PointNormal>);
     
     
     float   maxV      = std::numeric_limits<float>::min();
@@ -159,7 +159,14 @@ sw.Restart();
             scaled_v       = norm_scaled_v * resultant.normalized();
             norm_resultant = resultant.norm();
             
-            smoothField->push_back( pcl::Normal(scaled_v[0],scaled_v[1],scaled_v[2]) );
+            pcl::PointNormal pn;
+		  pn.x = field->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
+		  pn.y = field->back().y;
+		  pn.z = field->back().z;
+		  pn.normal_x = scaled_v[0];
+		  pn.normal_y = scaled_v[1];
+		  pn.normal_z = scaled_v[2];
+            smoothField->push_back( pn );
 
             if( minS > norm_resultant )
                 minS = norm_resultant;
@@ -179,7 +186,7 @@ sw.Restart();
     //If there were some "bad" provenance vectors remove them
     if(bad_ids.size()>0)
     {
-        pcl::ExtractIndices<pcl::Normal> extractN;
+        pcl::ExtractIndices<pcl::PointNormal> extractN;
         pcl::ExtractIndices<pcl::PointNormal> extractF;
         pcl::ExtractIndices<pcl::PointXYZ> extractP;
         
@@ -235,86 +242,35 @@ sw.Restart();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Generate weights for sampling of vizualization in provenance vectors   
     
-    float max_out = 100;
-    float min_out = 1;
-    
     //Init probabilities for sampling
-    std::vector<float> probs( field->size() );
+    std::vector<float> probs = getSamplingProbabilities(field, minV, maxV);
    
-    //The mapping or normalization options
-    int myMap = 2;  //0-> [0-1], 1->[min_out,max_out], 2->no mapping
-
+    
     // Newer min/max after filtering needs to be recomputed
-    float nMax = std::numeric_limits<float>::min();
-    float nMin = std::numeric_limits<float>::max();
+    float nMin;
+    float nMax;
     
-    // Map every vector in the tensor
-    for(int i=0;i<field->size();i++)
-    {
-        Eigen::Vector3f oldNormal( field->at(i).normal_x, field->at(i).normal_y, field->at(i).normal_z);
-        //float map_prob = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 0, 1);
-        //(oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0;
-        
-//         std::cout <<"map_prob "<< map_prob << " =  " << ((oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0 ) << endl;
-//         assert(map_prob == ((oldNormal.norm() - minV) * (1- 0) / (maxV - minV) + 0 ) && "map_prob");
-        
-        
-        // Probability is inverse of magnitude
-        // Longer provenance vectors -> lower prob of being sampled
-        // Smaller provenance vectors are associated to regions where objects are closer together
-        probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
-        
-//         std::cout <<"probs.at("<<i<<") "<< Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) << " =  " << 1-map_prob << endl;
-//         assert( ( Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0) == probs.at(i) ) && "probs.at");
-        
-
-        
-        Eigen::Vector3f oldNormalSmooth(smoothField->at(i).normal_x,smoothField->at(i).normal_y,smoothField->at(i).normal_z);
-        
-        Eigen::Vector3f newNormal,newNormalSmooth;
-        
-        if(myMap==1)
-        {
-            float mapped_mag  = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, min_out, max_out );
-//             std::cout <<"mapped_mag   "<< mapped_mag << " =  " << (( oldNormal.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out )<< endl;
-//             assert(( mapped_mag == (( oldNormal.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out )) && " mapped_mag no corresponding value");
-            
-            
-            
-            float mapped_mag2 = Util_iT::getValueProporcionsRule( oldNormalSmooth.norm(), minV, maxV, min_out, max_out );
-//             std::cout <<"mapped_mag2  "<< mapped_mag2 << " =  " << (( oldNormalSmooth.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out) << endl;
-//             assert((mapped_mag2 == (( oldNormalSmooth.norm() - minV) * (max_out- min_out) / (maxV - minV) + min_out)) && "mapped_mag2");
-
-            newNormal         = ( 1 / mapped_mag) * oldNormal.normalized();
-            newNormalSmooth   = ( 1 / mapped_mag2) * oldNormalSmooth.normalized();
+    //No mapping
+    nMin = minV;
+    nMax = maxV;
     
-            
-        }
-        if(myMap==0)
-        {
-            newNormal       = probs.at(i) * oldNormal.normalized();
-            newNormalSmooth = probs.at(i) * oldNormalSmooth.normalized();
-        }
-        if(myMap==2)
-        {
-            newNormal       = oldNormal;
-            newNormalSmooth = oldNormalSmooth;
-        }
-        
-        field->at(i).normal_x = newNormal[0];
-        field->at(i).normal_y = newNormal[1];
-        field->at(i).normal_z = newNormal[2];
-
-        smoothField->at(i).normal_x=newNormalSmooth[0];
-        smoothField->at(i).normal_y=newNormalSmooth[1];
-        smoothField->at(i).normal_z=newNormalSmooth[2];
-
-        //Check/save new max/min in tensor field
-        float mag = newNormal.norm();
-        if(mag<nMin)    nMin=mag;
-        if(mag>nMax)    nMax=mag;
-    }
+    //BEGINING Mapping norm magnitudes to [0,1]
+//     Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
+//     Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
+//     nMin=0;
+//     nMax=1;
+    //END Mapping norm magnitudes to [0,1]
     
+    //BEGIN Mapping norm magnituddes to [min_out, maxout]
+//     float min_out = 1;
+//     float max_out = 100;
+//     Util_iT::mapMagnitudesRationalFunction( *smoothField, minV, maxV, min_out, max_out );
+//     Util_iT::mapMagnitudesRationalFunction( *field, minV, maxV, min_out, max_out  );
+//     //this is because the 1/x function
+//     nMin=0;
+//     nMax=1;
+    //END Mapping norm magnituddes to [min_out, maxout]
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sampling provenance vector to construct the descriptor
     
@@ -603,6 +559,19 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
     }
     
 }
+
+
+ std::vector<float> IT::getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV){
+	 std::vector<float> probs( clout_in->size() );
+	 
+	 for(int i=0;i<clout_in->size();i++)
+	 {
+	   Eigen::Vector3f oldNormal( clout_in->at(i).normal_x, clout_in->at(i).normal_y, clout_in->at(i).normal_z);
+	   probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
+	 }
+	 return probs;
+	  
+ }
 
 
 bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, bool uniform)
