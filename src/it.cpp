@@ -160,12 +160,12 @@ void IT::calculate(){
             norm_resultant = resultant.norm();
             
             pcl::PointNormal pn;
-		  pn.x = field->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
-		  pn.y = field->back().y;
-		  pn.z = field->back().z;
-		  pn.normal_x = scaled_v[0];
-		  pn.normal_y = scaled_v[1];
-		  pn.normal_z = scaled_v[2];
+            pn.x = field->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
+            pn.y = field->back().y;
+            pn.z = field->back().z;
+            pn.normal_x = scaled_v[0];
+            pn.normal_y = scaled_v[1];
+            pn.normal_z = scaled_v[2];
             smoothField->push_back( pn );
 
             if( minS > norm_resultant )
@@ -251,14 +251,14 @@ sw.Restart();
     float nMax;
     
     //No mapping
-    nMin = minV;
-    nMax = maxV;
+//     nMin = minV;
+//     nMax = maxV;
     
     //BEGINING Mapping norm magnitudes to [0,1]
-//     Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
-//     Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
-//     nMin=0;
-//     nMax=1;
+    Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
+    Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
+    nMin=0;
+    nMax=1;
     //END Mapping norm magnitudes to [0,1]
     
     //BEGIN Mapping norm magnituddes to [min_out, maxout]
@@ -365,8 +365,8 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
         //Save mags in sampled mapped in 0-1 based on full tensor mags
         mags_c.at(i)=Util_iT::getValueProporcionsRule( n.norm(), nMin, nMax, 1, 0 );
         
-        //std::cout <<"mags_c.at(" <<i<< ")  "<< mags_c.at(i) << " =  " << (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) << endl;
-        //assert( mags_c.at(i) == (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_c.at(i)");
+        std::cout <<"mags_c.at(" <<i<< ")  "<< mags_c.at(i) << " =  " << probs.at(sortablePoints.at(i).first) << " == " << (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) << endl;
+        //assert( mags_c.at(i) == probs.at(sortablePoints.at(i).first) && mags_c.at(i) == (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_c.at(i)");
         
         
         
@@ -386,8 +386,9 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
         //Save mags in sampled mapped in 0-1 based on full tensor mags
         mags_cU.at(i) = Util_iT::getValueProporcionsRule( nU.norm(), nMin, nMax, 1, 0 );
         
-        //std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i) << " =  " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) << endl;
-        //assert( (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mapped_mag2");
+        std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << probs.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
+        
+        //assert( mags_cU.at(i) == probs.at(sortableUnidorm.at(i).first) && mags_cU.at(i) == (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_cU.at(i)");
         
         
     }
