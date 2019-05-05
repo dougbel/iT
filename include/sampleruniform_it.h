@@ -6,17 +6,14 @@
 /**
  * @todo write docs
  */
-class SamplerUniform_iT : Sampler_iT
+class SamplerUniform_iT : public Sampler_iT
 {
     public:
-        Sampler_iT getSampler(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, int sample_size);
+        SamplerUniform_iT(pcl::PointCloud<pcl::PointNormal>::Ptr provenance_vectors, int sample_size);
         
     protected:
         std::vector<int> sampleProbability();
-        
-    private:
-        
-        SamplerUniform_iT(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, int sample_size);
+
     
 };
 

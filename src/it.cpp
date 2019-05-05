@@ -340,8 +340,12 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
     std::vector<float> mags_cU(sampleSize);
     
     pcl::PointCloud<pcl::PointNormal>::Ptr provenanceToPlot(new pcl::PointCloud<pcl::PointNormal>);
-    PointCloudT::Ptr provenanceVectorsAnchor(new PointCloudT);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr provenanceVectorsAnchor(new pcl::PointCloud<pcl::PointXYZ>);
     std::cout<<"extracting new sample...";
+    
+    //this is just a test, I think that this calculation must be done with field or smooth field and not with normal_backup
+    std::vector<float> my_mags = getSamplingProbabilities(normals_backup, nMin, nMax);
+    
     for(int i=0;i<sampleSize;i++)
     {
         
@@ -386,13 +390,29 @@ std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
         //Save mags in sampled mapped in 0-1 based on full tensor mags
         mags_cU.at(i) = Util_iT::getValueProporcionsRule( nU.norm(), nMin, nMax, 1, 0 );
         
-        std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << probs.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
+        
+        //este NO funciona cuando hay mapeo de provenance vectors
+        //std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << probs.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
+        
+        std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << my_mags.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
         
         //assert( mags_cU.at(i) == probs.at(sortableUnidorm.at(i).first) && mags_cU.at(i) == (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_cU.at(i)");
         
         
     }
     std::cout<<"done"<<std::endl;
+    
+    
+    Sampler_iT* samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
+    samplerW->calculateSample();
+    pcl::PointCloud<PointWithVector>::Ptr sampleW;
+    sampleW = samplerW->sample;
+    
+    
+    Sampler_iT* samplerU = new SamplerUniform_iT(field, sampleSize);
+    samplerU->calculateSample();
+    pcl::PointCloud<PointWithVector>::Ptr sampleU;
+    sampleU = samplerU->sample;
     
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

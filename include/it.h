@@ -21,7 +21,9 @@
 #include "ibs.h"
 #include "util_it.h"
 #include "type_point_it.h"
-#include "sampler_it.h"
+
+#include "samplerweighted_it.h"
+#include "sampleruniform_it.h"
 #include "StopWatch.h"
 
 

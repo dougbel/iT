@@ -7,10 +7,11 @@
 /**
  * @todo write docs
  */
-class SamplerWeighted_iT : Sampler_iT
+class SamplerWeighted_iT : public Sampler_iT
 {
     public:
-        Sampler_iT getSampler(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float min_value_norm, float max_value_norm, int sample_size);
+        
+        SamplerWeighted_iT(pcl::PointCloud<pcl::PointNormal>::Ptr provenance_vectors, float min_value_norm, float max_value_norm, int sample_size);
         
     protected:
         std::vector<int> sampleProbability();
@@ -23,9 +24,8 @@ class SamplerWeighted_iT : Sampler_iT
         
         std::vector<float> weightsDistribution;
         
-        SamplerWeighted_iT(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float min_value_norm, float max_value_norm, int sample_size);
         
-        std::vector<float> calculateWeightsDistribution();
+        void calculateWeightsDistribution();
     
 };
 

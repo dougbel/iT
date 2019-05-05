@@ -1,15 +1,12 @@
 #include "sampleruniform_it.h"
 
 
-Sampler_iT SamplerUniform_iT::getSampler(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, int sample_size){
-    return SamplerUniform_iT(point_normal_cloud, sample_size);
-}
 
 
 
-SamplerUniform_iT::SamplerUniform_iT(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, int sample_size){
+SamplerUniform_iT::SamplerUniform_iT(pcl::PointCloud<pcl::PointNormal>::Ptr provenance_vectors, int sample_size){
     this->sampleSize = sample_size;
-    this->pointNormals = point_normal_cloud;
+    this->provenanceVectors = provenance_vectors;
 }
 
 
@@ -20,7 +17,7 @@ std::vector<int> SamplerUniform_iT::sampleProbability(){
     std::vector<int> idxSamples;
     std::vector<int> aux_ids;
     
-    int originalSize = this->pointNormals->size();
+    int originalSize = this->provenanceVectors->size();
     
     aux_ids.reserve( originalSize );
     

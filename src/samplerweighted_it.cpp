@@ -1,17 +1,12 @@
 #include "samplerweighted_it.h"
 
 
-Sampler_iT SamplerWeighted_iT::getSampler(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float min_value_norm, float max_value_norm, int sample_size){
-    return SamplerWeighted_iT(point_normal_cloud, min_value_norm, max_value_norm, sample_size);
-}
 
-
-
-SamplerWeighted_iT::SamplerWeighted_iT(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float min_value_norm, float max_value_norm, int sample_size){
+SamplerWeighted_iT::SamplerWeighted_iT(pcl::PointCloud<pcl::PointNormal>::Ptr provenance_vectors, float min_value_norm, float max_value_norm, int sample_size){
     this->sampleSize = sample_size;
     this->minValueNorm = min_value_norm;
     this->maxValueNorm = max_value_norm;
-    this->pointNormals = point_normal_cloud;
+    this->provenanceVectors = provenance_vectors;
 }
 
 
@@ -20,6 +15,7 @@ std::vector<int> SamplerWeighted_iT::sampleProbability(){
     
     int nrolls;
     int  indexer=0;
+    
     
     std::vector<int> idxSamples(sampleSize);
     
@@ -62,15 +58,16 @@ std::vector<int> SamplerWeighted_iT::sampleProbability(){
 
 
 
-std::vector<float> SamplerWeighted_iT::calculateWeightsDistribution(){
-    this->weightsDistribution.reserve( this->pointNormals->size() );
+void SamplerWeighted_iT::calculateWeightsDistribution(){
+    
+    this->weightsDistribution.reserve( this->provenanceVectors->size() );
     
     
-    for(int i = 0; i<pointNormals->size(); i++ )
+    for(int i = 0; i<provenanceVectors->size(); i++ )
     {
-        Eigen::Vector3f oldNormal( pointNormals->at(i).normal_x, pointNormals->at(i).normal_y, pointNormals->at(i).normal_z);
+        Eigen::Vector3f oldNormal( provenanceVectors->at(i).normal_x, provenanceVectors->at(i).normal_y, provenanceVectors->at(i).normal_z);
         //the smaller magnitude of norm the biggest weight`
-        this->weightsDistribution.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), this->minValueNorm, this->maxValueNorm, 1, 0);
+        this->weightsDistribution.push_back( Util_iT::getValueProporcionsRule( oldNormal.norm(), this->minValueNorm, this->maxValueNorm, 1, 0) );
     }
     //return this->weightsDistribution;
     
