@@ -279,7 +279,7 @@ public:
     * @param query_point The point
     * @return Index asociated to the nearest point in the point cloud
     */
-    static int indexOfClosestPointInACloud ( PointCloudT::Ptr cloud, pcl::PointXYZ query_point)
+    static int indexOfClosestPointInACloud ( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointXYZ query_point)
     {
         pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
         kdtree.setInputCloud(cloud);
