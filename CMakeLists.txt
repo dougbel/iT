@@ -27,7 +27,7 @@ set(QHULL_LIBRARIES /usr/local/lib/libqhullcpp.a /usr/local/lib/libqhullstatic_r
 set(IT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(IT_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(IT_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(IT_SOURCES ${IBS_SOURCES}  ${IT_SOURCES_DIR}/it.cpp)#TODO Agregar los cpp que realizan el calculo del interaction tensor
+set(IT_SOURCES ${IBS_SOURCES}  ${IT_SOURCES_DIR}/it.cpp ${IT_SOURCES_DIR}/sampleruniform_it.cpp ${IT_SOURCES_DIR}/samplerweighted_it.cpp)#TODO Agregar los cpp que realizan el calculo del interaction tensor
 
 
 #message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
