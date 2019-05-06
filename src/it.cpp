@@ -251,14 +251,14 @@ sw.Restart();
     float nMax;
     
     //No mapping
-//     nMin = minV;
-//     nMax = maxV;
+    nMin = minV;
+    nMax = maxV;
     
     //BEGINING Mapping norm magnitudes to [0,1]
-    Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
-    Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
-    nMin=0;
-    nMax=1;
+//     Util_iT::mapMagnitudes( *smoothField, minV, maxV, 1, 0 );
+//     Util_iT::mapMagnitudes( *field, minV, maxV, 1, 0 );
+//     nMin=0;
+//     nMax=1;
     //END Mapping norm magnitudes to [0,1]
     
     //BEGIN Mapping norm magnituddes to [min_out, maxout]
@@ -273,147 +273,36 @@ sw.Restart();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sampling provenance vector to construct the descriptor
-    
-    // Sample size to take from tensor
+  
+    //Sample size to take from tensor
     int sampleSize = 512;
-    
-    // Sample with prob: Probability inversly proportional to provenance vector length
-    // These are affordance keypoints
-    std::vector<int> keypoint_ids = sampleWithProbability( probs, sampleSize );
-    
-    // Aux containers for uniform sampling
-    std::vector<int> keypoints_uniform = sampleUniformProbability( field->size() ,sampleSize );
-    
-
-    //std::cout<<"Got "<<keypoint_ids.size()<<" keypoints"<<std::endl;
-    
-    
-
-    // Container to sort affordance keypoint
-    // "first" : id , "second" : magnitude
-    std::vector< std::pair<int, double> > sortablePoints(keypoint_ids.size());
-    std::vector< std::pair<int, double> > sortableUnidorm(keypoints_uniform.size());
-
-    // Fill the sortable containers
-    for(int i=0;i<keypoint_ids.size();i++)
-    {
-        //sampled by weight
-        std::pair<int, double>  pW;
-        pcl::PointNormal n;
-        pW.first      = keypoint_ids.at(i);
-        n             = normals_backup->at(pW.first);
-        pW.second     = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
-        sortablePoints.at(i) = pW;
-        
-        
-        //sampled uniformly
-        std::pair<int, double>  pwU;
-        pcl::PointNormal nU;
-        pwU.first    = keypoints_uniform.at(i);
-        nU           = normals_backup->at(pwU.first);
-        pwU.second   = Eigen::Vector3f(nU.normal_x, nU.normal_y, nU.normal_z).norm();
-        sortableUnidorm.at(i) = pwU;
-    }
-    
-std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
-    
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Sorting and extracting provenance vectors
-
-    // Actual sort according to provenance vector length (ascending way)
-    // Small (high weight) vectors come first
-    //std::cout<<"sorting new sample...";
-    std::sort(sortablePoints.begin(),sortablePoints.end(), [](const std::pair <int, double> & a, const std::pair <int, double> & b) -> bool{ return a.second < b.second; });
-    //std::cout<<"done"<<std::endl;
-    //std::cout<<"sorting uniform sample...";
-    std::sort(sortableUnidorm.begin(),sortableUnidorm.end(),[](const std::pair <int, double> & a, const std::pair <int, double> & b) -> bool{ return a.second < b.second; });
-    //std::cout<<"done"<<std::endl;
-    
-    
-    //Sample points sorted according to weight are copied to pointcloud format and saved
-    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloud2(new pcl::PointCloud<PointWithVector>);
-    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloudU(new pcl::PointCloud<PointWithVector>);
-
-    //Save mags in sampled mapped in 0-1 based on full tensor mags
-    std::vector<float> mags_c(sampleSize);
-    std::vector<float> mags_cU(sampleSize);
-    
-    pcl::PointCloud<pcl::PointNormal>::Ptr provenanceToPlot(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr provenanceVectorsAnchor(new pcl::PointCloud<pcl::PointXYZ>);
-    std::cout<<"extracting new sample...";
-    
-    //this is just a test, I think that this calculation must be done with field or smooth field and not with normal_backup
-    std::vector<float> my_mags = getSamplingProbabilities(normals_backup, nMin, nMax);
-    
-    for(int i=0;i<sampleSize;i++)
-    {
-        
-        //Saving provenance vectors sampled by WEIGHTS
-        PointWithVector pv;
-        
-        pcl::PointNormal tmp1 = normals_backup->at(sortablePoints.at(i).first);
-        pcl::PointXYZ tmp2 = ibsFiltered->at(sortablePoints.at(i).first);
-        assert(tmp1.x == tmp2.x && tmp1.y == tmp2.y && tmp1.z == tmp2.z);
-        
-        pv.x=ibsFiltered->at(sortablePoints.at(i).first).x;
-        pv.y=ibsFiltered->at(sortablePoints.at(i).first).y;
-        pv.z=ibsFiltered->at(sortablePoints.at(i).first).z;
-        pv.v1=normals_backup->at(sortablePoints.at(i).first).normal_x;
-        pv.v2=normals_backup->at(sortablePoints.at(i).first).normal_y;
-        pv.v3=normals_backup->at(sortablePoints.at(i).first).normal_z;
-        new_sampleCloud2->push_back(pv);
-        //pcl::PointNormal n(pv.v1,pv.v2,pv.v3);
-        //normals_check->push_back(n);
-        Eigen::Vector3f n(pv.v1,pv.v2,pv.v3);
-        //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_c.at(i)=Util_iT::getValueProporcionsRule( n.norm(), nMin, nMax, 1, 0 );
-        
-        std::cout <<"mags_c.at(" <<i<< ")  "<< mags_c.at(i) << " =  " << probs.at(sortablePoints.at(i).first) << " == " << (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) << endl;
-        //assert( mags_c.at(i) == probs.at(sortablePoints.at(i).first) && mags_c.at(i) == (1 - ((n.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_c.at(i)");
-        
-        
-        
-        //Saving provenance vectors sampled UNIFORMILY
-        PointWithVector pvU;
-        pvU.x=ibsFiltered->at(sortableUnidorm.at(i).first).x;
-        pvU.y=ibsFiltered->at(sortableUnidorm.at(i).first).y;
-        pvU.z=ibsFiltered->at(sortableUnidorm.at(i).first).z;
-        pcl::PointXYZ provenanceAnchor(pvU.x,pvU.y,pvU.z);
-        provenanceVectorsAnchor->push_back(provenanceAnchor);
-        pvU.v1=normals_backup->at(sortableUnidorm.at(i).first).normal_x;
-        pvU.v2=normals_backup->at(sortableUnidorm.at(i).first).normal_y;
-        pvU.v3=normals_backup->at(sortableUnidorm.at(i).first).normal_z;
-        new_sampleCloudU->push_back(pvU);
-        provenanceToPlot->push_back(normals_backup->at(sortableUnidorm.at(i).first));
-        Eigen::Vector3f nU(pvU.v1,pvU.v2,pvU.v3);
-        //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_cU.at(i) = Util_iT::getValueProporcionsRule( nU.norm(), nMin, nMax, 1, 0 );
-        
-        
-        //este NO funciona cuando hay mapeo de provenance vectors
-        //std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << probs.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
-        
-        std::cout <<"mags_cU.at(" <<i<< ")  "<< mags_cU.at(i)<< " =  " << my_mags.at(sortableUnidorm.at(i).first)<< " == " << (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 ))  << endl;
-        
-        //assert( mags_cU.at(i) == probs.at(sortableUnidorm.at(i).first) && mags_cU.at(i) == (1-( (nU.norm()-nMin)*(1-0)/(nMax-nMin)+0 )) && "mags_cU.at(i)");
-        
-        
-    }
-    std::cout<<"done"<<std::endl;
-    
     
     Sampler_iT* samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
     samplerW->calculateSample();
-    pcl::PointCloud<PointWithVector>::Ptr sampleW;
-    sampleW = samplerW->sample;
+    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloud2;//sampleW;
+    new_sampleCloud2 = samplerW->sample;
     
     
     Sampler_iT* samplerU = new SamplerUniform_iT(field, sampleSize);
     samplerU->calculateSample();
-    pcl::PointCloud<PointWithVector>::Ptr sampleU;
-    sampleU = samplerU->sample;
+    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloudU; //sampleU;
+    new_sampleCloudU = samplerU->sample;
     
+    
+    //Save mags in sampled mapped in 0-1 based on full tensor mags
+    std::vector<float> mags_c(sampleSize);
+    std::vector<float> mags_cU(sampleSize);
+    for(int i=0;i<sampleSize;i++)
+    {
+        pcl::PointNormal backup = normals_backup->at( samplerW->getIdxNormKeypoints().at(i).first );
+        Eigen::Vector3f backupNormal( backup.normal_x, backup.normal_y, backup.normal_z);
+        
+        //Save mags in sampled mapped in 0-1 based on full tensor mags
+        mags_c.at(i)=Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 ); //FIX this code made reference to nMin and nMax but I think is BETTER minV and maxV
+        
+        //Save mags in sampled mapped in 0-1 based on full tensor mags
+        mags_cU.at(i) = Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 );//FIX this code made reference to nMin and nMax but I think is BETTER minV and maxV
+    }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Saving iT    
@@ -884,66 +773,3 @@ bool IT::createSpin( pcl::PointCloud<PointWithVector>::Ptr sample,  pcl::PointCl
 
 
 
-
-std::vector<int> IT::sampleWithProbability( std::vector<float> weights,int sampleSize ){
-    
-    std::vector<int> idxSamples(sampleSize);
-    
-    int  indexer=0;
-    int nrolls = 2*weights.size();
-    
-    //random numers generator
-    std::default_random_engine generator;
-    // distribution used for generate number randomly
-    std::discrete_distribution<int> distribution (weights.begin(),weights.end());
-   
-    // Sampled data, it will be the vote bins  to define keypoints 
-    std::vector< std::pair<int,int> > bins;
-    
-    //inizializing container of votes
-    bins.reserve(weights.size());
-	std::generate_n(std::back_inserter(bins), weights.size(), [indexer]()mutable { return std::make_pair (indexer++,0); });
-    
-    
-    //full filling the vote containers throught the generator of random numbers
-    for (indexer=0; indexer<nrolls; ++indexer)    {
-        int number = distribution(generator);
-        bins.at(number).second += 1;
-    }
-    
-    //ordering votes and indexs associated in a descendent way 
-    std::sort(bins.begin(),bins.end(), 
-              [](const std::pair <int, int> & a, const std::pair <int, int> & b) -> bool{ return a.second > b.second; });
-    
-    //sampling
-    for(indexer=0;indexer<sampleSize;indexer++)    {
-        idxSamples.at(indexer) = bins.at( indexer ).first;
-        //std::cout << "index "<< indexer<< ", votes " <<  bins.at( indexer ).first << " : " << bins.at( indexer ).second <<  std::endl;
-    }
-    
-    return idxSamples;
-}
-
-
-std::vector<int> IT::sampleUniformProbability(int originalSize,int sampleSize ){
-    
-    // Aux containers for uniform sampling
-    std::vector<int> idxSamples;
-    std::vector<int> aux_ids;
-    
-    aux_ids.reserve(originalSize);
-    
-    int n = 0;
-    
-    std::generate_n(std::back_inserter(aux_ids), originalSize, [n]()mutable { return n++; });
-    std::srand (unsigned(std::time(0)));
-
-    // By now aux_ids is filled in ascending order [0-field-size)
-    // Shuffle them ramdomly and get the sample
-    std::random_shuffle ( aux_ids.begin(), aux_ids.end() );
-    
-    idxSamples.assign(aux_ids.begin(),aux_ids.begin()+sampleSize);
-
-    
-    return idxSamples;
-}
