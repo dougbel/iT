@@ -7,7 +7,6 @@
 #include <pcl/filters/extract_indices.h>
 
 #include "it.h"
-#include "StopWatch.h"
 
 
 int main(int argc, char *argv[])

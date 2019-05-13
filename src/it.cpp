@@ -42,6 +42,8 @@ void IT::calculate(){
     sceneCloudFiltered = Util::sphereExtraction(sceneCloud, middlePointObject,radio);
 
     
+    //pcl::io::savePCDFile("scene_cloud_filtered.pcd",*sceneCloudFiltered);
+    
  StopWatch sw;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // calculate the Interaction Bisector Surface (IBS)
@@ -213,6 +215,13 @@ sw.Restart();
         extractF.filter (*field);
         extractP.filter (*ibsFiltered);
     }
+    
+    
+    
+     //pcl::io::savePCDFile("test_1_pv_calculation_field.pcd",*field);
+     //pcl::io::savePCDFile("test_1_pv_calculation_smoothField.pcd",*smoothField);
+    
+    
     
     //TODO this seems unecesary
     //This is a cleaner tensor/ibs, which does not have those bad prov vectors
