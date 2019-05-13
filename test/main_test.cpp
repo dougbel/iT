@@ -29,7 +29,7 @@ public:
     {
         // compare A to B
         pcl::search::KdTree<pcl::PointNormal> tree_b;
-        tree_b.setInputCloud (pvCloudB.makeShared ());
+        tree_b.setInputCloud( pvCloudB.makeShared() );
         
         int b = 0 ;
         
@@ -41,21 +41,22 @@ public:
             std::vector<int> index (1);
             std::vector<float> sqr_distances (1);
 
-            tree_b.nearestKSearch (pvCloudA.points[i], 1, index, sqr_distances);
+            tree_b.nearestKSearch (pvCloudA.points[i], 5, index, sqr_distances);
             
             points_distance += sqr_distances[0];
             
             float diff_norm = Eigen::Vector3f(  pvCloudA.points[i].normal_x - pvCloudB.points[ index[0] ].normal_x, 
                                             pvCloudA.points[i].normal_y - pvCloudB.points[ index[0] ].normal_y, 
                                             pvCloudA.points[i].normal_z - pvCloudB.points[ index[0] ].normal_z ).norm();
-            if( diff_norm > 0.000001 ){
+            if( diff_norm > 0.001 ){
                 pcl::PointNormal pa = pvCloudA.points[i];
                 pcl::PointNormal pb = pvCloudB.points[index[0]];
                 
+                std::cout << i << std::endl;
                 std::cout << "x " << pa.x << ", " << pb.x << "  y " << pa.y << ", " << pb.y << "  z " << pa.z << ", " << pb.z << endl;
                 std::cout << "n_x " << pa.normal_x << ", " << pb.normal_x << "  n_y " << pa.normal_y << ", " << pb.normal_y << "  n_z " << pa.normal_z << ", " << pb.normal_z << endl;
                 
-                std::cout << b++ << " differencias encontradas" << endl << endl << endl;
+                std::cout << b++ << " differencias encontradas: " << diff_norm <<  endl;
                 differences->push_back( pvCloudA.points[i] );
             }
             
@@ -64,8 +65,10 @@ public:
                                             pvCloudA.points[i].normal_z - pvCloudB.points[ index[0] ].normal_z ).norm();
                                             
         }
-        if(differences->size() > 0)
+        if(differences->size() > 0){
+            
             pcl::io::savePCDFileASCII( "differences.pcd", *differences); 
+        }
     }
     
 };

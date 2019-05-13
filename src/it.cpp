@@ -132,7 +132,7 @@ void IT::calculate(){
                     // first NN is used for provenance vectors
                     pcl::PointNormal pn;
                     
-                    pn.x = ibs_point.x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
+                    pn.x = ibs_point.x;
                     pn.y = ibs_point.y;
                     pn.z = ibs_point.z;
                     
@@ -162,9 +162,9 @@ void IT::calculate(){
             norm_resultant = resultant.norm();
             
             pcl::PointNormal pn;
-            pn.x = field->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
-            pn.y = field->back().y;
-            pn.z = field->back().z;
+            pn.x = ibs_point.x;
+            pn.y = ibs_point.y;
+            pn.z = ibs_point.z;
             pn.normal_x = scaled_v[0];
             pn.normal_y = scaled_v[1];
             pn.normal_z = scaled_v[2];

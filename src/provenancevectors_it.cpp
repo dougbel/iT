@@ -65,7 +65,7 @@ void ProvenanceVectors_iT::calculateProvenanceVectors(int knnToSmooth) {
 
 
                 sc             = this->sceneCloud->at( NNidSC.at(j) );
-                component      = Eigen::Vector3f( sc.x-ibs_point.x,sc.y-ibs_point.y,sc.z-ibs_point.z );
+                component      = Eigen::Vector3f( sc.x-ibs_point.x, sc.y-ibs_point.y, sc.z-ibs_point.z );
                 norm_component = component.norm();
 
 
@@ -78,7 +78,7 @@ void ProvenanceVectors_iT::calculateProvenanceVectors(int knnToSmooth) {
                     // first NN is used for provenance vectors
                     pcl::PointNormal pn;
 
-                    pn.x = ibs_point.x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
+                    pn.x = ibs_point.x; 
                     pn.y = ibs_point.y;
                     pn.z = ibs_point.z;
 
@@ -108,9 +108,9 @@ void ProvenanceVectors_iT::calculateProvenanceVectors(int knnToSmooth) {
             norm_resultant = resultant.norm();
 
             pcl::PointNormal pn;
-            pn.x = rawProvenanceVectors->back().x; //TODO tengo que comprobar que la informaci[on se encuentra coorectamente asignada
-            pn.y = rawProvenanceVectors->back().y;
-            pn.z = rawProvenanceVectors->back().z;
+            pn.x = ibs_point.x; 
+            pn.y = ibs_point.y;
+            pn.z = ibs_point.z;
             pn.normal_x = scaled_v[0];
             pn.normal_y = scaled_v[1];
             pn.normal_z = scaled_v[2];
