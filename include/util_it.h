@@ -301,12 +301,12 @@ public:
     }
     
     
-    static float round4decimals(float val)
-    {
-        return floorf(val * 100000) / 100000;
-    }
-    
-    
+    /**
+    * @brief Saves data from a point cloud to a CVS format file
+    * 
+    * @param file_name The name of the file (better have a .cvs extension)
+    * @param cloud The point cloud
+    */
     static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointNormal> cloud){
         
         std::ofstream file;
@@ -323,10 +323,16 @@ public:
     }
     
     
+    /**
+    * @brief Saves data from a point cloud to a CVS format file
+    * 
+    * @param file_name The name of the file (better have a .cvs extension)
+    * @param cloud The point cloud
+    */
     static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointXYZ> cloud){
         
         std::ofstream file;
-        
+                
         file.open (file_name);
         file << "x,y,z" << std::endl;
         
@@ -336,6 +342,13 @@ public:
         }
         
         file.close();
+    }
+    
+    
+    
+    static float round4decimals(float val)
+    {
+        return floorf(val * 100000) / 100000;
     }
     
         
