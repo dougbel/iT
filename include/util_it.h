@@ -19,6 +19,9 @@
 
 
 #include <math.h>
+#include <iostream>
+#include <fstream>
+
 
 
 
@@ -298,10 +301,56 @@ public:
     }
     
     
+    /**
+    * @brief Saves data from a point cloud to a CVS format file
+    * 
+    * @param file_name The name of the file (better have a .cvs extension)
+    * @param cloud The point cloud
+    */
+    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointNormal> cloud){
+        
+        std::ofstream file;
+        
+        file.open (file_name);
+        file << "x,y,z,normal_x,normal_y,normal_z" << std::endl;
+        
+        for(int i=0; i<cloud.size(); i++)
+        {
+            file << cloud.at(i).x << "," << cloud.at(i).y << "," << cloud.at(i).z << "," << cloud.at(i).normal_x << "," << cloud.at(i).normal_y << "," << cloud.at(i).normal_z << std::endl;
+        }
+        
+        file.close();
+    }
+    
+    
+    /**
+    * @brief Saves data from a point cloud to a CVS format file
+    * 
+    * @param file_name The name of the file (better have a .cvs extension)
+    * @param cloud The point cloud
+    */
+    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointXYZ> cloud){
+        
+        std::ofstream file;
+                
+        file.open (file_name);
+        file << "x,y,z" << std::endl;
+        
+        for(int i=0; i<cloud.size(); i++)
+        {
+            file << cloud.at(i).x << "," << cloud.at(i).y << "," << cloud.at(i).z << std::endl;
+        }
+        
+        file.close();
+    }
+    
+    
+    
     static float round4decimals(float val)
     {
         return floorf(val * 100000) / 100000;
     }
+    
         
 };
 
