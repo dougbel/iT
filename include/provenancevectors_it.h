@@ -23,6 +23,12 @@ class ProvenanceVectors_iT
         float   maxV;
         float   minV;
         
+        float   maxS;
+        float   minS;
+        
+        float   sum;
+        double  sumSmooth;
+        
         
         ProvenanceVectors_iT( pcl::PointCloud<pcl::PointXYZ>::Ptr ibs, pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud );
         

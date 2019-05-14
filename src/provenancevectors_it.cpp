@@ -5,9 +5,12 @@
 
 ProvenanceVectors_iT::ProvenanceVectors_iT( pcl::PointCloud<pcl::PointXYZ>::Ptr ibs, pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud ): ibs(ibs), sceneCloud(scene_cloud) {
 
-    
     maxV      = std::numeric_limits<float>::min();
     minV      = std::numeric_limits<float>::max();
+    maxS      = std::numeric_limits<float>::min();
+    minS      = std::numeric_limits<float>::max();
+    sum       = 0;
+    sumSmooth = 0;
 
 }
 
@@ -25,10 +28,8 @@ void ProvenanceVectors_iT::calculateProvenanceVectors(int knnToSmooth) {
 
     kdtreeSCN.setInputCloud(this->sceneCloud);
     
-    float   maxS      = std::numeric_limits<float>::min();
-    float   minS      = std::numeric_limits<float>::max();
-    float   sum       = 0;
-    double  sumSmooth = 0;
+    
+    
 
 
     std::vector<int> bad_ids;
