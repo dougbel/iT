@@ -41,7 +41,7 @@ public:
             std::vector<int> index (1);
             std::vector<float> sqr_distances (1);
 
-            tree_b.nearestKSearch (pvCloudA.points[i], 5, index, sqr_distances);
+            tree_b.nearestKSearch (pvCloudA.points[i], 1, index, sqr_distances);
             
             points_distance += sqr_distances[0];
             

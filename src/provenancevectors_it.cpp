@@ -3,10 +3,8 @@
 
 
 
-ProvenanceVectors_iT::ProvenanceVectors_iT( pcl::PointCloud<pcl::PointXYZ>::Ptr ibs, pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud ) {
+ProvenanceVectors_iT::ProvenanceVectors_iT( pcl::PointCloud<pcl::PointXYZ>::Ptr ibs, pcl::PointCloud<pcl::PointXYZ>::Ptr scene_cloud ): ibs(ibs), sceneCloud(scene_cloud) {
 
-    this->ibs = ibs;
-    this->sceneCloud = scene_cloud;
     
     maxV      = std::numeric_limits<float>::min();
     minV      = std::numeric_limits<float>::max();
