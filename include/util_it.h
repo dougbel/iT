@@ -19,6 +19,9 @@
 
 
 #include <math.h>
+#include <iostream>
+#include <fstream>
+
 
 
 
@@ -302,6 +305,39 @@ public:
     {
         return floorf(val * 100000) / 100000;
     }
+    
+    
+    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointNormal> cloud){
+        
+        std::ofstream file;
+        
+        file.open (file_name);
+        file << "x,y,z,normal_x,normal_y,normal_z" << std::endl;
+        
+        for(int i=0; i<cloud.size(); i++)
+        {
+            file << cloud.at(i).x << "," << cloud.at(i).y << "," << cloud.at(i).z << "," << cloud.at(i).normal_x << "," << cloud.at(i).normal_y << "," << cloud.at(i).normal_z << std::endl;
+        }
+        
+        file.close();
+    }
+    
+    
+    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointXYZ> cloud){
+        
+        std::ofstream file;
+        
+        file.open (file_name);
+        file << "x,y,z" << std::endl;
+        
+        for(int i=0; i<cloud.size(); i++)
+        {
+            file << cloud.at(i).x << "," << cloud.at(i).y << "," << cloud.at(i).z << std::endl;
+        }
+        
+        file.close();
+    }
+    
         
 };
 
