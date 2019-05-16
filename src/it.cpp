@@ -116,13 +116,6 @@ sw.Restart();
     pcl::copyPointCloud(*field,*normals_backup);
     
     
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Generate weights for sampling of vizualization in provenance vectors   
-    
-    //Init probabilities for sampling
-    std::vector<float> probs = getSamplingProbabilities(field, minV, maxV);
-   
-    
     // Newer min/max after filtering needs to be recomputed
     float nMin;
     float nMax;
@@ -152,7 +145,7 @@ sw.Restart();
     // Sampling provenance vector to construct the descriptor
   
     //Sample size to take from tensor
-    int sampleSize = 512;
+    int sampleSize = 512;   //TODO this must be a parameter for the sampling
     
     Sampler_iT* samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
     samplerW->calculateSample();
@@ -175,10 +168,10 @@ sw.Restart();
         Eigen::Vector3f backupNormal( backup.normal_x, backup.normal_y, backup.normal_z);
         
         //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_c.at(i)=Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 ); //FIX this code made reference to nMin and nMax but I think is BETTER minV and maxV
+        mags_c.at(i)=Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 ); //TODO this code made reference to nMin and nMax but I think is BETTER minV and maxV
         
         //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_cU.at(i) = Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 );//FIX this code made reference to nMin and nMax but I think is BETTER minV and maxV
+        mags_cU.at(i) = Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 );//TODO this code made reference to nMin and nMax but I think is BETTER minV and maxV
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -197,7 +190,7 @@ sw.Restart();
         //std::string command="mkdir "+aff_path;
         //command=exec(command.c_str());
         boost::filesystem::path dir(aff_path);
-		boost::filesystem::create_directory(dir);
+        boost::filesystem::create_directory(dir);
     }
     else
     {
@@ -212,7 +205,7 @@ sw.Restart();
     // used, the new pose is computed using center of bounding boxes.
     
     std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
-    //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA"
+    //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA", por ahora se calcula como el punto mas cercano al centroide del objeto
     pcl::PointXYZ p_scene;
     int idxScene = Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, middlePointObject );
     p_scene      = sceneCloudFiltered->at(idxScene);
@@ -231,48 +224,48 @@ sw.Restart();
 
     // Info file name
     {
-    std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
-    std::ofstream output_file(file_name.c_str());
-    int clusters=1;
-    float size=0;
+        std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
+        std::ofstream output_file(file_name.c_str());
+        int clusters=1;
+        float size=0;
 
-    // Previously some clustering was performed over IBS points to estimate
-    // clusters, only one (referencing=single) of this clusters was then used to estimate poses but
-    // we dropped that. Data is still saved.
-    std::string referencing="Single";
+        // Previously some clustering was performed over IBS points to estimate
+        // clusters, only one (referencing=single) of this clusters was then used to estimate poses but
+        // we dropped that. Data is still saved.
+        std::string referencing="Single";
 
-    //Start saving to file
-    if(output_file.is_open())
-    {
-        std::string scene_name = "table";
-        output_file<<"Scene name:"<<scene_name<<"\n"; //TODO This could be unnecesary
-        output_file<<"Object name:"<<this->objectName<<"\n";
-        output_file<<"Clusters:"<<clusters<<"\n";
-        for(int i=0;i<clusters;i++)
-            output_file<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
-        output_file<<"Distance threshold:"<<size<<"\n";
-        output_file<<"Reference:"<<referencing<<"\n";
-        output_file<<one<<":"<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
-        output_file<<"ScenePoint\n";
-        output_file<<three<<":"<<sceneCloudFiltered->at(three).x<<","<<sceneCloudFiltered->at(three).y<<","<<sceneCloudFiltered->at(three).z<<"\n";
-        output_file<<"IbsPointVector\n";
-        output_file<<one<<":"<<toIBS[0]<<","<<toIBS[1]<<","<<toIBS[2]<<"\n";
-        output_file<<"ObjPointVector\n";
-        output_file<<two<<":"<<toObject[0]<<","<<toObject[1]<<","<<toObject[2]<<"\n";
-        output_file<<"Object Transformation\n";
-        //TODO this is unnecesary
-//         output_file<<centroidObjFinal[0]-centroidObjInit[0]<<","<<centroidObjFinal[1]-centroidObjInit[1]<<","<<centroidObjFinal[2]-centroidObjInit[2]<<"\n";
-//         output_file<<ob_angle<<"\n"; 
-//         output_file<<"Object Transformation Box\n";
-//         output_file<<box2.x-box1.x<<","<<box2.y-box1.y<<","<<box2.z-box1.z<<"\n";
-//         output_file<<"SceneToBoxCentroid\n";
-//         output_file<<box2.x-p_scene.x<<","<<box2.y-p_scene.y<<","<<box2.z-p_scene.z<<"\n";
-    }
-    else
-    {
-        std::cout<<"Problem with data file "<<std::endl;
-    }
-    output_file.close();
+        //Start saving to file
+        if(output_file.is_open())
+        {
+            std::string scene_name = "table";
+            output_file<<"Scene name:"<<scene_name<<"\n"; //TODO This could be unnecesary
+            output_file<<"Object name:"<<this->objectName<<"\n";
+            output_file<<"Clusters:"<<clusters<<"\n";
+            for(int i=0;i<clusters;i++)
+                output_file<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
+            output_file<<"Distance threshold:"<<size<<"\n";
+            output_file<<"Reference:"<<referencing<<"\n";
+            output_file<<one<<":"<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
+            output_file<<"ScenePoint\n";
+            output_file<<three<<":"<<sceneCloudFiltered->at(three).x<<","<<sceneCloudFiltered->at(three).y<<","<<sceneCloudFiltered->at(three).z<<"\n";
+            output_file<<"IbsPointVector\n";
+            output_file<<one<<":"<<toIBS[0]<<","<<toIBS[1]<<","<<toIBS[2]<<"\n";
+            output_file<<"ObjPointVector\n";
+            output_file<<two<<":"<<toObject[0]<<","<<toObject[1]<<","<<toObject[2]<<"\n";
+            //TODO this is unnecesary
+    //         output_file<<"Object Transformation\n";
+    //         output_file<<centroidObjFinal[0]-centroidObjInit[0]<<","<<centroidObjFinal[1]-centroidObjInit[1]<<","<<centroidObjFinal[2]-centroidObjInit[2]<<"\n";
+    //         output_file<<ob_angle<<"\n"; 
+    //         output_file<<"Object Transformation Box\n";
+    //         output_file<<box2.x-box1.x<<","<<box2.y-box1.y<<","<<box2.z-box1.z<<"\n";
+    //         output_file<<"SceneToBoxCentroid\n";
+    //         output_file<<box2.x-p_scene.x<<","<<box2.y-p_scene.y<<","<<box2.z-p_scene.z<<"\n";
+        }
+        else
+        {
+            std::cout<<"Problem with data file "<<std::endl;
+        }
+        output_file.close();
     }
     
     // Scene-to-IBS and Scene-to-object are saved in affordance keypoints file
@@ -303,8 +296,8 @@ sw.Restart();
     
     // Save everything
     std::string new_ibs_field   = aff_path + this->affordanceName + "_" + this->objectName + "_field.pcd";
-    std::string new_ibs_sample  = aff_path + "ibs_sample_512_" + this->affordanceName + "_" + this->objectName + "_better.pcd";
-    std::string new_ibs_sampleU = aff_path + "ibs_sample_512_" + this->affordanceName + "_" + this->objectName + "_betterUniform.pcd";
+    std::string new_ibs_sample  = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_better.pcd";
+    std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_betterUniform.pcd";
     
     std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
     std::string clean_ibs       = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + "_clean.pcd";  // TODO It doesn't have any sense
@@ -345,6 +338,7 @@ sw.Restart();
     
     // Spin cloud for uniform sampled
     createSpin(new_sampleCloudU,ibsFiltered,aff_path,8,true);
+    
     if(getAggloRepresentation(mags_cU,aff_path,true))
     {
         std::cout<<"Everything ok"<<std::endl;
@@ -352,18 +346,6 @@ sw.Restart();
     
 }
 
-
- std::vector<float> IT::getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV){
-	 std::vector<float> probs( clout_in->size() );
-	 
-	 for(int i=0;i<clout_in->size();i++)
-	 {
-	   Eigen::Vector3f oldNormal( clout_in->at(i).normal_x, clout_in->at(i).normal_y, clout_in->at(i).normal_z);
-	   probs.at(i) = Util_iT::getValueProporcionsRule( oldNormal.norm(), minV, maxV, 1, 0);
-	 }
-	 return probs;
-	  
- }
 
 
 bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, bool uniform)
@@ -623,7 +605,7 @@ void IT::getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orienta
     std::cout<<"Descriptor "<<descriptor.rows()<<std::endl;
 }
 
-bool IT::createSpin( pcl::PointCloud<PointWithVector>::Ptr sample,  pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh,int orientations,  bool uniform){
+bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh, int orientations, bool uniform){
     std::stringstream ii;
     ii<<orientations;
     getSpinMatrix(sample,orientations,full_ibs);
