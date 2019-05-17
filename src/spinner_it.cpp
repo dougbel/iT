@@ -8,23 +8,25 @@ Spinner_iT::Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, int orienta
 
 
 void Spinner_iT::calculateSpinings(){
-      pcl::PointCloud<PointWithVector>::iterator iter=sample->end();
+    
     PointCloudT::Ptr relativePoints(new PointCloud);
+    
+    
+    //get reference point in the ibs
     PointWithVector p=sample->at(sample->size()-2);
-    pcl::PointXYZ refPointIBS(p.x,p.y,p.z);
-    int refPointIBSId=int(p.v1);
-    std::cout<<"ref: "<<refPointIBSId<<std::endl;
+    pcl::PointXYZ refPointIBS(p.x,p.y,p.z); //vector from reference pointin scene to reference point in IBS
+    int refPointIBSId=int(p.v1);   //index of reference point in IBS
+    
+    //this is SCENE reference point
     pcl::PointXYZ ref(full->at(refPointIBSId).x-refPointIBS.x,full->at(refPointIBSId).y-refPointIBS.y,full->at(refPointIBSId).z-refPointIBS.z);
-    //pcl::PointXYZ ref2=full->at(refPointIBSId);//unused variable
+    
 
-    //pcl::PointXYZ actual_ref()
-    --iter;
-    sample->erase(iter);
-    --iter;
-    sample->erase(iter);
-
+    sample->erase( sample->end()-1 );//erase reference to the relation scene-object
+    sample->erase( sample->end()-1 );//erase reference to the relation scene-ibs
+    
     descriptor.resize(sample->size()*orientations,3);
     vectors.resize(sample->size(),3);
+    
     PointCloud::Ptr xyz_target(new PointCloud);
     std::cout<<"REf: "<<ref<<std::endl;
     for(int j=0;j<sample->size();j++)
@@ -41,19 +43,22 @@ void Spinner_iT::calculateSpinings(){
         //lengths.at(j)=1-((v.norm()- minW) * (1 - 0) / (maxW - minW) + 0);
         //xyz_target->push_back(pcl::PointXYZ(aP.x,aP.y,aP.z));
     }
-    PointCloudC::Ptr anchor(new PointCloudC);
-    pcl::PointXYZRGB coloredanchor(0,255,0);
-    coloredanchor.x=ref.x;
-    coloredanchor.y=ref.y;
-    coloredanchor.z=ref.z;
-    anchor->push_back(coloredanchor);
+    //BEGIN
+    //PointCloudC::Ptr anchor(new PointCloudC);
+    //pcl::PointXYZRGB coloredanchor(0,255,0);
+    //coloredanchor.x=ref.x;
+    //coloredanchor.y=ref.y;
+    //coloredanchor.z=ref.z;
+    //anchor->push_back(coloredanchor);
     //viewer->addPointCloud(anchor,"Anchor");
     //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5,"Anchor");
+    //END
     PointCloud::Ptr spinCloud(new PointCloud);
     PointCloud::Ptr relative_spin(new PointCloud);
     PointCloud::Ptr xyz_2(new PointCloud);
     pcl::copyPointCloud(*sample,*xyz_target);
-    pcl::copyPointCloud(*xyz_target,*spinCloud);
+    pcl::copyPointCloud(*sample,*spinCloud);
+    
     pcl::copyPointCloud(*relativePoints,*relative_spin);
     std::cout<<"Spining "<<xyz_2->size()<<" points"<<std::endl;
     //if(viewer->contains("Spincloud"))
@@ -65,13 +70,17 @@ void Spinner_iT::calculateSpinings(){
     //    viewer->resetStoppedFlag();
 
     for (int i=1;i<orientations;i++)
-    {
+    {   
+        // a) rotates sample points to the next orientation an save in xyz_target
         pcl::copyPointCloud(*sample,*xyz_2);
-        rotateCloud(xyz_2,xyz_target, i*2*M_PI/orientations,'z',ref);
-        *spinCloud+=*xyz_target;
+        rotateCloud( xyz_2, xyz_target, i*2*M_PI/orientations, 'z', ref );
+        *spinCloud+=*xyz_target; //se agrega el resultado de la rotación
+        
+        
         pcl::copyPointCloud(*relativePoints,*xyz_2);
         rotateCloud(xyz_2,xyz_target, i*2*M_PI/orientations,'z',true);
         *relative_spin+=*xyz_target;
+        
         //std::cout<<"Spincloud: "<<xyz_target->size()<<std::endl;
         //if(viewer->contains("Spincloud"))
         //            viewer->updatePointCloud(relative_spin,"Spincloud");
@@ -122,7 +131,7 @@ void Spinner_iT::rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl
 void Spinner_iT::rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,pcl::PointXYZ pivot){
     
     Eigen::Affine3f transform = Eigen::Affine3f::Identity();
-    Eigen::Vector4f centroid (Eigen::Vector4f::Zero());
+    //Eigen::Vector4f centroid (Eigen::Vector4f::Zero());
     Eigen::Vector3f ax;
     //pcl::PointXYZ pivot;
     int id=cloud_in->size();
@@ -154,7 +163,7 @@ void Spinner_iT::rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl
     
 }
 
-//TODO Erase me, this way of calculating translations is not necesary
+//TODO Erase me, this way of calculating translations is not necesary BECAUSE A ROTATION WITH RESPECET TO THE CENTROID IS NEVER USED
 void Spinner_iT::translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in, pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation){//TODO  no comprendo por que se toma como referencia el cetroide de la nube de puntos
     
     Eigen::Vector4f centroid;
