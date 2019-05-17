@@ -91,8 +91,13 @@ void Spinner_iT::calculateSpinings(){
         //        viewer->resetStoppedFlag();
 
     }
-    for(int i=0;i<spinCloud->size();i++)
+    for(int i=0;i<spinCloud->size();i++){
         descriptor.row(i)=Eigen::Vector3f(relative_spin->at(i).x,relative_spin->at(i).y,relative_spin->at(i).z);
+        
+        //if( (spinCloud->at(i).x-ref.x) != relative_spin->at(i).x  ||  (spinCloud->at(i).y-ref.y) != relative_spin->at(i).y  ||  (spinCloud->at(i).z-ref.z) != relative_spin->at(i).z )  
+        //    std::cout << "x " << (spinCloud->at(i).x-ref.x) << ", " << relative_spin->at(i).x << "  y " << (spinCloud->at(i).y-ref.y) << ", " << relative_spin->at(i).y << "  z " << (spinCloud->at(i).z-ref.z) << ", " << relative_spin->at(i).z << std::endl;
+        
+    }
     std::cout<<"Descriptor "<<descriptor.rows()<<std::endl;
     
 }
@@ -178,6 +183,7 @@ void Spinner_iT::translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in, pcl::Po
 //     transform.rotate (Eigen::AngleAxisf (0, Eigen::Vector3f::UnitZ()));
 //     pcl::transformPointCloud (*in, *out, transform);
 }
+
      
 void Spinner_iT::translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in, pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation, pcl::PointXYZ reference){
     

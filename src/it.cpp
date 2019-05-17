@@ -371,6 +371,7 @@ bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, boo
     Eigen::MatrixXf data_individual(1,n_orientations);
     data_individual<<Eigen::MatrixXf::Zero(1,n_orientations);
 
+    std::cout << data_individual<<std::endl;
 
     for(int i=0;i<descriptor.rows();i++)
     {
