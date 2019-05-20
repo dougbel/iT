@@ -38,36 +38,25 @@ public:
     
     void calculate();
     
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr getIT();
-    
-//     void setROI ( pcl::PointXYZ pivotPoint, float radio );
-        
-//     bool isSet_ROI();
-    
-    
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloud;
     pcl::PointCloud<pcl::PointXYZ>::Ptr objectCloud;
     std::string affordanceName;
     std::string objectName;
     
+    //sampling realized
+    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloud2;
+    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloudU;
+    
+    //Mags in sampled mapped in 0-1 based on full tensor mags
+    std::vector<float> mags_c;
+    std::vector<float> mags_cU;
+    
     
     
 private:
     
-    //SAMPLING SECTION    
-    
-    /**
-    * @brief Generates the indexes of a sampling size 'sampleSize', such index are choosen throught a distribution of probability defined by a vector og weigths 'weights'
-    * 
-    * @param weights p_weights:...
-    * @param sampleSize p_sampleSize:...
-    * @param aux p_aux:...
-    * @return std::vector< int >
-    */
-    std::vector<int> sampleWithProbability( std::vector< float > weights, int sampleSize );
-    
-    std::vector<int> sampleUniformProbability( int originalSize, int sampleSize );
-   
+    //Sample size to take from tensor
+    const int sampleSize = 512;   
     
     //SPINNING SECTION
     
@@ -84,6 +73,7 @@ private:
     * @return The vector of probabilities associated to each norm in the point cloud
     */
     std::vector<float> getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV);
+    
     
     bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
     

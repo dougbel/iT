@@ -15,8 +15,10 @@
 #include <pcl/surface/gp3.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
-#include <Eigen/Dense>
 
+#include "type_point_it.h"
+
+#include <Eigen/Dense>
 
 #include <math.h>
 #include <iostream>
@@ -185,6 +187,27 @@ public:
         
         min_mag = min_original;
         max_mag = max_original;
+    }
+    
+    
+    static std::vector<float> calculatedMappedMagnitudesToVector(pcl::PointCloud<PointWithVector> &point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+        
+        int size = point_normal_cloud.size();
+        
+        std::vector<float> mags(size);
+        
+        for( int i=0; i<size; i++ )
+        {
+            PointWithVector backup = point_normal_cloud.at( i );
+            Eigen::Vector3f backupNormal( backup.v1, backup.v2, backup.v3);
+        
+            //Save mags in sampled mapped in 0-1 based on full tensor mags
+            mags.at(i)=Util_iT::getValueProporcionsRule( backupNormal.norm(), min_original_range, max_original_range, min_mapped, max_mapped ); 
+        
+        }
+        
+        return mags;
+    
     }
     
     
