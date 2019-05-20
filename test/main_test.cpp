@@ -6,8 +6,14 @@
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/extract_indices.h>
 
-#include "it.h"
+#include <vector>
+#include <iostream>
+#include <fstream>
+#include <iterator>
 
+
+#include "it.h"
+#include "util_it.h"
 
 class PV_Distance{
 public:
@@ -71,6 +77,36 @@ public:
     }
     
 };
+
+
+void write_vector_to_file(const std::vector<float>& myVector, std::string filename)
+{
+    Eigen::VectorXd v(512);
+    for(int i = 0 ; i < myVector.size(); i++){
+        v(i)= myVector.at(i);
+    }
+    
+    std::ofstream file(filename.c_str());
+    pcl::saveBinary(v,file);
+}
+
+
+std::vector<float> read_vector_from_file(std::string filename)
+{    
+    std::vector<float> newVector;
+    
+    Eigen::VectorXd v(512);
+    
+    std::ifstream is(filename.c_str());
+     
+    pcl::loadBinary(v, is);
+
+    for(int i = 0 ; i < 512; i++){
+        newVector.push_back(v(i));
+    }
+    
+    return newVector;
+}
 
 
 int main(int argc, char *argv[])
@@ -159,7 +195,7 @@ int main(int argc, char *argv[])
     //////  RAW PROVENANCE VECTORS CALCULATION comparing with original implementation
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
-    
+    //BEGIN
     ProvenanceVectors_iT pv_it_withOriginal(ibsFiltered, sceneCloudFiltered);
     pv_it_withOriginal.calculateProvenanceVectors(5);
     
@@ -203,6 +239,49 @@ int main(int argc, char *argv[])
     else{
         std::cout << std::endl << "SUCESS!" <<std::endl<<std::endl<<std::endl;
     }
+    //END
+    
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //////  MAPPING MAGNITUDES OF SAMPLING
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    // extract volume of interest from the scene
+    pcl::PointCloud<PointWithVector>::Ptr sampled_by_weights(new pcl::PointCloud<PointWithVector>);
+    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_with_weights.pcd", *sampled_by_weights);
+    
+    pcl::PointCloud<PointWithVector>::Ptr sampled_uniformly(new pcl::PointCloud<PointWithVector>);
+    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_uniformly.pcd", *sampled_uniformly);
+    
+    std::vector<float> mags_c_precalculated;
+    std::vector<float> mags_cU_precalculated;
+    
+    mags_c_precalculated = read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
+   
+    mags_cU_precalculated = read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
+    
+    
+    float nMin;
+    float nMax;
+    
+    Util_iT::getMinMaxMagnitudes(*raw_pv_precalculated_original_it, nMin, nMax);
+    
+    std::vector<float> mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *sampled_by_weights, nMin, nMax, 1, 0 );
+    std::vector<float> mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampled_uniformly, nMin, nMax, 1, 0 );
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     return EXIT_SUCCESS;

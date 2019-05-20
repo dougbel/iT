@@ -166,7 +166,7 @@ public:
     * @param min_mag Min found magnitude
     * @param max_mag Max found magnitude
     */
-    static void getMinMaxMagnitudes(pcl::PointCloud<pcl::PointNormal>::Ptr point_normal_cloud, float &min_mag, float &max_mag){
+    static void getMinMaxMagnitudes(pcl::PointCloud<pcl::PointNormal> point_normal_cloud, float &min_mag, float &max_mag){
         
         float max_original = std::numeric_limits<float>::min();
         float min_original = std::numeric_limits<float>::max();
@@ -174,9 +174,9 @@ public:
         pcl::PointNormal n;
         float mag ;
         
-        for(int i = 0; i < point_normal_cloud->size(); i++){
+        for(int i = 0; i < point_normal_cloud.size(); i++){
             
-            n = point_normal_cloud->at(i);
+            n = point_normal_cloud.at(i);
             
             mag = Eigen::Vector3f(n.normal_x, n.normal_y, n.normal_z).norm();
             

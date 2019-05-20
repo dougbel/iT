@@ -163,32 +163,6 @@ sw.Restart();
     mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *new_sampleCloud2, nMin, nMax, 1, 0 );
     mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *new_sampleCloudU, nMin, nMax, 1, 0 );
     
-    std::vector<float> mags_c2(sampleSize);
-    std::vector<float> mags_cU2(sampleSize);
-    mags_c2.resize(sampleSize);
-    mags_cU2.resize(sampleSize);
-    
-    for(int i=0;i<sampleSize;i++)
-    {
-        pcl::PointNormal backup = normals_backup->at( samplerW->getIdxNormKeypoints().at(i).first );
-        Eigen::Vector3f backupNormal( backup.normal_x, backup.normal_y, backup.normal_z);
-        
-        //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_c2.at(i) = Util_iT::getValueProporcionsRule( backupNormal.norm(), nMin, nMax, 1, 0 ); //TODO this code made reference to nMin and nMax but I think is BETTER minV and maxV
-        
-        pcl::PointNormal backupU = normals_backup->at( samplerU->getIdxNormKeypoints().at(i).first );
-        Eigen::Vector3f backupNormalU( backupU.normal_x, backupU.normal_y, backupU.normal_z);
-        
-        //Save mags in sampled mapped in 0-1 based on full tensor mags
-        mags_cU2.at(i) = Util_iT::getValueProporcionsRule( backupNormalU.norm(), nMin, nMax, 1, 0 );//TODO this code made reference to nMin and nMax but I think is BETTER minV and maxV
-        
-        if(mags_c2.at(i) != mags_c.at(i) ||  mags_cU2.at(i) != mags_cU.at(i) ){
-            std::cout << mags_c2.at(i) << " " << mags_c.at(i) << "  ==,==  " << mags_cU2.at(i) << " " << mags_cU.at(i) <<std::endl;
-            std::cout <<"son differentes"<<std::endl;
-        }
-        
-    }
-    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Saving iT    
     
