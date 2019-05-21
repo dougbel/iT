@@ -108,6 +108,12 @@ std::vector<float> read_vector_from_file(std::string filename)
     return newVector;
 }
 
+void printPointWithVector(PointWithVector p){
+    std::cout << std::fixed;
+    std::cout << p.x << "," << p.y << "," << p.z << "," << " normal: " <<p.v1 << ","  << p.v2 << ","  << p.v3 << ","  << std::endl;
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -207,7 +213,7 @@ int main(int argc, char *argv[])
     
     std::cout << "Distance: [" << "Points: "  <<  distancePV_withOriginal.points_distance << ", PV: "  << distancePV_withOriginal.norm_diffs << " ]" << std::endl;
     
-    if (distancePV_withOriginal.points_distance >= 0.0001 || distancePV_withOriginal.norm_diffs >= 0.0001){
+    if (distancePV_withOriginal.points_distance >= 0.00001 || distancePV_withOriginal.norm_diffs >= 0.00001){
         std::cout << "WARNING! RAW Provenance vector are not calculated correctly" <<std::endl;
         std::cout << "I found this is possibly beacuse some points that are equidistants" <<std::endl<<std::endl;
         std::cout << "Failure but continue test!!!"<<std::endl<<std::endl<<std::endl;;
@@ -272,17 +278,20 @@ int main(int argc, char *argv[])
     std::vector<float> mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *sampled_by_weights, nMin, nMax, 1, 0 );
     std::vector<float> mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampled_uniformly, nMin, nMax, 1, 0 );
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    std::cout.precision(15);
+    std::fixed;
+    for( int i = 0 ; i < mags_c.size(); i ++){
+        if( mags_c[i] != mags_c_precalculated[i] ){
+            std::cout << "error weighted" <<endl;
+            printPointWithVector(sampled_by_weights[i]);
+            std::cout << mags_c[i] << " - " << mags_c_precalculated[i] <<endl;
+        }
+        
+        if( mags_cU[i] != mags_cU_precalculated[i] ){
+            std::cout << "error uniform" <<endl;
+            std::cout << mags_cU[i] << " - " << mags_cU_precalculated[i] <<endl;
+        }
+    }
     
     return EXIT_SUCCESS;
 }
