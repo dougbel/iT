@@ -43,6 +43,23 @@ public:
     std::string affordanceName;
     std::string objectName;
     
+    
+    //filtered point clouds for working
+    pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
+    
+    
+    //reference points
+    pcl::PointXYZ   refPointScene;      // reference point in SCENE
+    int             idxRefScene;
+    pcl::PointXYZ   refPointIBS;        //reference point in IBS
+    int             idxRefIBS;
+    pcl::PointXYZ   refPointObject;     //reference point in OBJECT
+    int             idxRefObject;
+    Eigen::Vector3f vectSceneToIBS;
+    Eigen::Vector3f vectSceneToObject;
+    
+    
     //sampling realized
     pcl::PointCloud<PointWithVector>::Ptr new_sampleCloud2;
     pcl::PointCloud<PointWithVector>::Ptr new_sampleCloudU;
@@ -78,6 +95,10 @@ private:
     bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
     
     bool createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh, int orientations=8,bool uniform=false);
+    
+    std::string prepareDirectory();
+    
+    void defineReferences(pcl::PointXYZ anchorPoint);
     
     //void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
     

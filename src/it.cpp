@@ -6,6 +6,9 @@ IT::IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ
        
     this->sceneCloud.reset(new pcl::PointCloud<pcl::PointXYZ>);
     this->objectCloud.reset(new pcl::PointCloud<pcl::PointXYZ>);
+
+    this->sceneCloudFiltered.reset(new pcl::PointCloud<pcl::PointXYZ>);
+    this->ibsFiltered.reset(new pcl::PointCloud<pcl::PointXYZ>);
     
      // to compute voronoi diagram over all points
     this->sceneCloud   = scene;
@@ -22,7 +25,8 @@ void IT::calculate(){
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //calculate the Region of Interest (RoI) for further calculations
     //a sphere with radio equal to the diagonal of the box which surroundsthe object
-    pcl::PointXYZ min, max, middlePointObject;
+    pcl::PointXYZ   middlePointObject;  // this is used to construct all reference poins
+    pcl::PointXYZ min, max;
     float radio;
     
     pcl::getMinMax3D(*objectCloud,min,max);
@@ -37,8 +41,6 @@ void IT::calculate(){
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // extract volume of interest from the scene
-    pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered;
-    
     sceneCloudFiltered = Util::sphereExtraction(sceneCloud, middlePointObject,radio);
 
     
@@ -56,12 +58,11 @@ void IT::calculate(){
 //     
 // sw.Restart();
 //     //as IBS extend to infinity, filter IBS
-//     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
 //     ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
     
     
 //     //TODO erase this, it is only for developing porpouses
-    pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
+    
     pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,12 +100,7 @@ void IT::calculate(){
 std::cout << "TIMER: Filtering " << sw.ElapsedMs() << std::endl;
 
     // Print out some data about the tensor and filtering/cleaning
-    std::cout<<"Tensor after filtering "<<copyIBS->size()<<std::endl;
-    std::cout<<"Min: "<<minV<<" Max: "<<maxV<<std::endl;
-    std::cout<<"Sum: "<<sum<<std::endl;
-    std::cout<<"======================"<<std::endl;
-    std::cout<<"MinS: "<<minS<<" MaxS: "<<maxS<<std::endl;
-    std::cout<<"SumSmooth: "<<sumSmooth<<std::endl;
+    std::cout<< pv_it <<std::endl;
     
     
 sw.Restart();    
@@ -144,9 +140,6 @@ sw.Restart();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sampling provenance vector to construct the descriptor
   
-    //Sample size to take from tensor
-    //int sampleSize = 512;   //TODO this must be a parameter for the sampling
-    
     Sampler_iT* samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
     samplerW->calculateSample();
     
@@ -172,19 +165,7 @@ sw.Restart();
     // version is not used.
     
     //Check a path exists
-    std::string aff_path = this->affordanceName + "/";
-    if (!boost::filesystem::exists( this->affordanceName.c_str() ) )
-    {
-        std::cout << "New affordance? Creating dir -> " <<aff_path<< std::endl;
-        //std::string command="mkdir "+aff_path;
-        //command=exec(command.c_str());
-        boost::filesystem::path dir(aff_path);
-        boost::filesystem::create_directory(dir);
-    }
-    else
-    {
-        std::cout << "Found affordance dir -> " <<aff_path<< std::endl;
-    }
+    std::string aff_path = prepareDirectory();
 
 
     // Some data for info file
@@ -194,23 +175,10 @@ sw.Restart();
     // used, the new pose is computed using center of bounding boxes.
     
     std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
-    //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA", por ahora se calcula como el punto mas cercano al centroide del objeto
-    pcl::PointXYZ p_scene;
-    int idxScene = Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, middlePointObject );
-    p_scene      = sceneCloudFiltered->at(idxScene);
-    int one      = Util_iT::indexOfClosestPointInACloud ( ibsFiltered, p_scene); //"ClosestTensor"
+    this->defineReferences(middlePointObject);
     
-    std::cout<<"Getting closest from object to scene"<<std::endl;
-    int two  = Util_iT::indexOfClosestPointInACloud ( objectCloud, p_scene );
-    int three= Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, p_scene ); //"ClosestSCN");
-    Eigen::Vector3f toIBS,toObject;
-    toIBS[0]=ibsFiltered->at(one).x-p_scene.x;
-    toIBS[1]=ibsFiltered->at(one).y-p_scene.y;
-    toIBS[2]=ibsFiltered->at(one).z-p_scene.z;
-    toObject[0]=objectCloud->at(two).x-p_scene.x;
-    toObject[1]=objectCloud->at(two).y-p_scene.y;
-    toObject[2]=objectCloud->at(two).z-p_scene.z;
-
+    
+    
     // Info file name
     {
         std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
@@ -231,16 +199,16 @@ sw.Restart();
             output_file<<"Object name:"<<this->objectName<<"\n";
             output_file<<"Clusters:"<<clusters<<"\n";
             for(int i=0;i<clusters;i++)
-                output_file<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
+                output_file<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
             output_file<<"Distance threshold:"<<size<<"\n";
             output_file<<"Reference:"<<referencing<<"\n";
-            output_file<<one<<":"<<ibsFiltered->at(one).x<<","<<ibsFiltered->at(one).y<<","<<ibsFiltered->at(one).z<<"\n";
+            output_file<<idxRefIBS<<":"<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
             output_file<<"ScenePoint\n";
-            output_file<<three<<":"<<sceneCloudFiltered->at(three).x<<","<<sceneCloudFiltered->at(three).y<<","<<sceneCloudFiltered->at(three).z<<"\n";
+            output_file<<idxRefScene<<":"<<refPointScene.x<<","<<refPointScene.y<<","<<refPointScene.z<<"\n";
             output_file<<"IbsPointVector\n";
-            output_file<<one<<":"<<toIBS[0]<<","<<toIBS[1]<<","<<toIBS[2]<<"\n";
+            output_file<<idxRefIBS<<":"<<vectSceneToIBS[0]<<","<<vectSceneToIBS[1]<<","<<vectSceneToIBS[2]<<"\n";
             output_file<<"ObjPointVector\n";
-            output_file<<two<<":"<<toObject[0]<<","<<toObject[1]<<","<<toObject[2]<<"\n";
+            output_file<<idxRefObject<<":"<<vectSceneToObject[0]<<","<<vectSceneToObject[1]<<","<<vectSceneToObject[2]<<"\n";
             //TODO this is unnecesary
     //         output_file<<"Object Transformation\n";
     //         output_file<<centroidObjFinal[0]-centroidObjInit[0]<<","<<centroidObjFinal[1]-centroidObjInit[1]<<","<<centroidObjFinal[2]-centroidObjInit[2]<<"\n";
@@ -261,18 +229,18 @@ sw.Restart();
     // As commented earlier it was used to align pointclouds
     // at test time. No longer used but still kept in files.
     PointWithVector secondtolast;
-    secondtolast.x=toIBS[0];
-    secondtolast.y=toIBS[1];
-    secondtolast.z=toIBS[2];
-    secondtolast.v1=one;
+    secondtolast.x=vectSceneToIBS[0];
+    secondtolast.y=vectSceneToIBS[1];
+    secondtolast.z=vectSceneToIBS[2];
+    secondtolast.v1=idxRefIBS;
     secondtolast.v2=secondtolast.v3=0;
     
     
     PointWithVector last;
-    last.x=toObject[0];
-    last.y=toObject[1];
-    last.z=toObject[2];
-    last.v1=two;
+    last.x=vectSceneToObject[0];
+    last.y=vectSceneToObject[1];
+    last.z=vectSceneToObject[2];
+    last.v1=idxRefObject;
     last.v2=last.v3=0;
 
     
@@ -465,5 +433,42 @@ bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointClou
     return true;
 }
 
+void IT::defineReferences(pcl::PointXYZ anchorPoint){
+    //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA", por ahora se calcula como el punto mas cercano al centroide del objeto    
+    this->idxRefScene   = Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, anchorPoint );
+    this->refPointScene = sceneCloudFiltered->at(idxRefScene);
+    
+    this->idxRefIBS     = Util_iT::indexOfClosestPointInACloud ( ibsFiltered, refPointScene); //"ClosestTensor"
+    this->refPointIBS   = ibsFiltered->at(idxRefIBS);
+    
+    this->idxRefObject   = Util_iT::indexOfClosestPointInACloud ( objectCloud, refPointScene );
+    this->refPointObject = objectCloud->at(idxRefObject);
+    
+    this->vectSceneToIBS[0] = refPointIBS.x - refPointScene.x;
+    this->vectSceneToIBS[1] = refPointIBS.y - refPointScene.y;
+    this->vectSceneToIBS[2] = refPointIBS.z - refPointScene.z;
+    
+    this->vectSceneToObject[0] = objectCloud->at(idxRefObject).x - refPointScene.x;
+    this->vectSceneToObject[1] = objectCloud->at(idxRefObject).y - refPointScene.y;
+    this->vectSceneToObject[2] = objectCloud->at(idxRefObject).z - refPointScene.z;
+    
+}
 
 
+std::string IT::prepareDirectory(){
+    
+    std::string aff_path = this->affordanceName + "/";
+    if (!boost::filesystem::exists( this->affordanceName.c_str() ) )
+    {
+        std::cout << "New affordance? Creating dir -> " <<aff_path<< std::endl;
+        //std::string command="mkdir "+aff_path;
+        //command=exec(command.c_str());
+        boost::filesystem::path dir(aff_path);
+        boost::filesystem::create_directory(dir);
+    }
+    else
+    {
+        std::cout << "Found affordance dir -> " <<aff_path<< std::endl;
+    }
+    return aff_path;
+}

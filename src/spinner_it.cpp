@@ -17,7 +17,7 @@ void Spinner_iT::calculateSpinings(){
     pcl::PointXYZ refPointIBS(p.x,p.y,p.z); //vector from reference pointin scene to reference point in IBS
     int refPointIBSId=int(p.v1);   //index of reference point in IBS
     
-    //this is SCENE reference point
+    //this is SCENE reference point //TODO este dato ya lo tengo previamente, no necesito enviar referencias, más bien el dato completo
     pcl::PointXYZ ref(full->at(refPointIBSId).x-refPointIBS.x,full->at(refPointIBSId).y-refPointIBS.y,full->at(refPointIBSId).z-refPointIBS.z);
     
 
