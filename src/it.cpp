@@ -173,11 +173,10 @@ sw.Restart();
     // were used previously to estimate the pose of Tensor/Object
     // relative to scene. These are still computed and save but no longer
     // used, the new pose is computed using center of bounding boxes.
-    
     std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
     this->defineReferences(middlePointObject);
     
-    this->saveInfo(aff_path);
+    this->saveBasicInfo(aff_path);
     
     
     
@@ -185,19 +184,21 @@ sw.Restart();
     // As commented earlier it was used to align pointclouds
     // at test time. No longer used but still kept in files.
     PointWithVector secondtolast;
-    secondtolast.x=vectSceneToIBS[0];
-    secondtolast.y=vectSceneToIBS[1];
-    secondtolast.z=vectSceneToIBS[2];
-    secondtolast.v1=idxRefIBS;
-    secondtolast.v2=secondtolast.v3=0;
+    secondtolast.x  = vectSceneToIBS[0];
+    secondtolast.y  = vectSceneToIBS[1];
+    secondtolast.z  = vectSceneToIBS[2];
+    secondtolast.v1 = idxRefIBS;
+    secondtolast.v2 = 0;
+    secondtolast.v3 = 0;
     
     
     PointWithVector last;
-    last.x=vectSceneToObject[0];
-    last.y=vectSceneToObject[1];
-    last.z=vectSceneToObject[2];
-    last.v1=idxRefObject;
-    last.v2=last.v3=0;
+    last.x  = vectSceneToObject[0];
+    last.y  = vectSceneToObject[1];
+    last.z  = vectSceneToObject[2];
+    last.v1 = idxRefObject;
+    last.v2 = 0;
+    last.v3 = 0;
 
     
     new_sampleCloud2->push_back(secondtolast);
@@ -217,8 +218,8 @@ sw.Restart();
     std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
     
     pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *field);
-    pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);
-    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);
+    pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);   // here reference point are saved, it is better not to save them 
+    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
     
     pcl::io::savePCDFile( smoother_field.c_str(), *smoothField);
     pcl::io::savePCDFile( clean_ibs, *copyIBS);
@@ -226,6 +227,12 @@ sw.Restart();
     
     std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
     
+    
+    //TODO I add this point but inmediatly erase it because I erased their necesity in the "SPIN CALCULATION"
+    new_sampleCloud2->erase( new_sampleCloud2->end()-1 );
+    new_sampleCloud2->erase( new_sampleCloud2->end()-1 );
+    new_sampleCloudU->erase( new_sampleCloudU->end()-1 );
+    new_sampleCloudU->erase( new_sampleCloudU->end()-1 );
     
  
     // By default compute spin cloud for 8 orientations
@@ -236,7 +243,7 @@ sw.Restart();
     // So we compute this X-orientations and store them for testing.
 
     // Spin cloud for weight-sampled
-    createSpin( new_sampleCloud2, ibsFiltered, aff_path );
+    createSpin( new_sampleCloud2, aff_path );
     // New representation for agglomerative descriptor
     // In following release, multiple affordaces can be detected
     // at same time, single affordance representation (this code)
@@ -250,7 +257,7 @@ sw.Restart();
     }
     
     // Spin cloud for uniform sampled
-    createSpin(new_sampleCloudU,ibsFiltered,aff_path,8,true);
+    createSpin(new_sampleCloudU,aff_path,8,true);
     
     if(getAggloRepresentation(mags_cU,aff_path,true))
     {
@@ -357,11 +364,10 @@ bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, boo
 
 
 
-bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh, int orientations, bool uniform){
+bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pathh, int orientations, bool uniform){
     std::stringstream ii;
     ii<<orientations;
-    //getSpinMatrix(sample,orientations,full_ibs);
-    Spinner_iT spinner( sample, orientations, full_ibs );
+    Spinner_iT spinner( sample, refPointScene, orientations);
     spinner.calculateSpinings();
     
     this->descriptor = spinner.descriptor;
@@ -390,7 +396,7 @@ bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointClou
 }
 
 
-void IT::saveInfo( std::string aff_path ){
+void IT::saveBasicInfo( std::string aff_path ){
     // Info file name
     std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
     std::ofstream output_file(file_name.c_str());
@@ -406,7 +412,7 @@ void IT::saveInfo( std::string aff_path ){
     if(output_file.is_open())
     {
         std::string scene_name = "table";
-        output_file<<"Scene name:"<<scene_name<<"\n"; //TODO This could be unnecesary
+        output_file<<"Scene name:"<<scene_name<<"\n"; 
         output_file<<"Object name:"<<this->objectName<<"\n";
         output_file<<"Clusters:"<<clusters<<"\n";
         for(int i=0;i<clusters;i++)

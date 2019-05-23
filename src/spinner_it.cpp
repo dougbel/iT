@@ -1,8 +1,10 @@
 #include "spinner_it.h"
 
-Spinner_iT::Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full):sample(sample),full(full),orientations(orientations)
+Spinner_iT::Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointXYZ spiningPoint, int orientations)
 {
-
+    this->sample       = sample;
+    this->spiningPoint = spiningPoint;
+    this->orientations = orientations;
 }
 
 
@@ -11,30 +13,17 @@ void Spinner_iT::calculateSpinings(){
     
     PointCloudT::Ptr relativePoints(new PointCloud);
     
-    
-    //get reference point in the ibs
-    PointWithVector p=sample->at(sample->size()-2);
-    pcl::PointXYZ refPointIBS(p.x,p.y,p.z); //vector from reference pointin scene to reference point in IBS
-    int refPointIBSId=int(p.v1);   //index of reference point in IBS
-    
-    //this is SCENE reference point //TODO este dato ya lo tengo previamente, no necesito enviar referencias, más bien el dato completo
-    pcl::PointXYZ ref(full->at(refPointIBSId).x-refPointIBS.x,full->at(refPointIBSId).y-refPointIBS.y,full->at(refPointIBSId).z-refPointIBS.z);
-    
-
-    sample->erase( sample->end()-1 );//erase reference to the relation scene-object
-    sample->erase( sample->end()-1 );//erase reference to the relation scene-ibs
-    
     descriptor.resize(sample->size()*orientations,3);
     vectors.resize(sample->size(),3);
     
     PointCloud::Ptr xyz_target(new PointCloud);
-    std::cout<<"REf: "<<ref<<std::endl;
+    std::cout<<"REf: "<<spiningPoint<<std::endl;
     for(int j=0;j<sample->size();j++)
     {
         PointWithVector aP;
-        aP.x=sample->at(j).x-ref.x;
-        aP.y=sample->at(j).y-ref.y;
-        aP.z=sample->at(j).z-ref.z;
+        aP.x=sample->at(j).x-spiningPoint.x;
+        aP.y=sample->at(j).y-spiningPoint.y;
+        aP.z=sample->at(j).z-spiningPoint.z;
         relativePoints->push_back(pcl::PointXYZ(aP.x,aP.y,aP.z));
         //descriptor.row(j)=aP.getVector3fMap();
         Eigen::Vector3f v(sample->at(j).v1,sample->at(j).v2,sample->at(j).v3);
@@ -46,9 +35,9 @@ void Spinner_iT::calculateSpinings(){
     //BEGIN
     //PointCloudC::Ptr anchor(new PointCloudC);
     //pcl::PointXYZRGB coloredanchor(0,255,0);
-    //coloredanchor.x=ref.x;
-    //coloredanchor.y=ref.y;
-    //coloredanchor.z=ref.z;
+    //coloredanchor.x=spiningPoint.x;
+    //coloredanchor.y=spiningPoint.y;
+    //coloredanchor.z=spiningPoint.z;
     //anchor->push_back(coloredanchor);
     //viewer->addPointCloud(anchor,"Anchor");
     //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5,"Anchor");
@@ -73,7 +62,7 @@ void Spinner_iT::calculateSpinings(){
     {   
         // a) rotates sample points to the next orientation an save in xyz_target
         pcl::copyPointCloud(*sample,*xyz_2);
-        rotateCloud( xyz_2, xyz_target, i*2*M_PI/orientations, 'z', ref );
+        rotateCloud( xyz_2, xyz_target, i*2*M_PI/orientations, 'z', spiningPoint );
         *spinCloud+=*xyz_target; //se agrega el resultado de la rotación
         
         
@@ -94,8 +83,8 @@ void Spinner_iT::calculateSpinings(){
     for(int i=0;i<spinCloud->size();i++){
         descriptor.row(i)=Eigen::Vector3f(relative_spin->at(i).x,relative_spin->at(i).y,relative_spin->at(i).z);
         
-        //if( (spinCloud->at(i).x-ref.x) != relative_spin->at(i).x  ||  (spinCloud->at(i).y-ref.y) != relative_spin->at(i).y  ||  (spinCloud->at(i).z-ref.z) != relative_spin->at(i).z )  
-        //    std::cout << "x " << (spinCloud->at(i).x-ref.x) << ", " << relative_spin->at(i).x << "  y " << (spinCloud->at(i).y-ref.y) << ", " << relative_spin->at(i).y << "  z " << (spinCloud->at(i).z-ref.z) << ", " << relative_spin->at(i).z << std::endl;
+        //if( (spinCloud->at(i).x-spiningPoint.x) != relative_spin->at(i).x  ||  (spinCloud->at(i).y-spiningPoint.y) != relative_spin->at(i).y  ||  (spinCloud->at(i).z-spiningPoint.z) != relative_spin->at(i).z )  
+        //    std::cout << "x " << (spinCloud->at(i).x-spiningPoint.x) << ", " << relative_spin->at(i).x << "  y " << (spinCloud->at(i).y-spiningPoint.y) << ", " << relative_spin->at(i).y << "  z " << (spinCloud->at(i).z-spiningPoint.z) << ", " << relative_spin->at(i).z << std::endl;
         
     }
     std::cout<<"Descriptor "<<descriptor.rows()<<std::endl;

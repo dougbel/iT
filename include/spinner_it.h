@@ -14,8 +14,8 @@ class Spinner_iT
 {
 public:
     
-    pcl::PointCloud<PointWithVector>::Ptr sample;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr full;   // this is useful just to have a reference for the spin, it is not nesary receive the whole PC
+    pcl::PointCloud<PointWithVector>::Ptr sample;    
+    pcl::PointXYZ spiningPoint;
     int orientations;
     
         //SPINNING SECTION
@@ -29,7 +29,7 @@ public:
     /**
      * @todo write docs
      */
-    Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
+    Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointXYZ spiningPoint, int orientations);
     
     void calculateSpinings();
 

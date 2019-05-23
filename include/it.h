@@ -94,13 +94,13 @@ private:
     
     bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
     
-    bool createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointCloud<pcl::PointXYZ>::Ptr full_ibs, std::string pathh, int orientations=8,bool uniform=false);
+    bool createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pathh, int orientations=8,bool uniform=false);
     
     std::string prepareDirectory();
     
     void defineReferences( pcl::PointXYZ anchorPoint );
     
-    void saveInfo( std::string aff_path );
+    void saveBasicInfo( std::string aff_path );
     
     //void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
     
