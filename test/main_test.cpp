@@ -79,34 +79,7 @@ public:
 };
 
 
-void write_vector_to_file(const std::vector<float>& myVector, std::string filename)
-{
-    Eigen::VectorXd v(512);
-    for(int i = 0 ; i < myVector.size(); i++){
-        v(i)= myVector.at(i);
-    }
-    
-    std::ofstream file(filename.c_str());
-    pcl::saveBinary(v,file);
-}
 
-
-std::vector<float> read_vector_from_file(std::string filename)
-{    
-    std::vector<float> newVector;
-    
-    Eigen::VectorXd v(512);
-    
-    std::ifstream is(filename.c_str());
-     
-    pcl::loadBinary(v, is);
-
-    for(int i = 0 ; i < 512; i++){
-        newVector.push_back(v(i));
-    }
-    
-    return newVector;
-}
 
 void printPointWithVector(PointWithVector p){
     std::cout << std::fixed;
@@ -117,6 +90,9 @@ void printPointWithVector(PointWithVector p){
 
 int main(int argc, char *argv[])
 {
+    
+    std::cout.precision(15);
+    std::fixed;
 
     // extract volume of interest from the scene
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered(new pcl::PointCloud<pcl::PointXYZ>);
@@ -205,21 +181,28 @@ int main(int argc, char *argv[])
     ProvenanceVectors_iT pv_it_withOriginal(ibsFiltered, sceneCloudFiltered);
     pv_it_withOriginal.calculateProvenanceVectors(5);
     
-    std::cout << "STARTING test provenance vector calculation COMPARED with original implementation" << std::endl;
+    // Print out some data about the tensor and filtering/cleaning
+    std::cout<<pv_it_withOriginal<<endl;
+    
+    
+    //Util_iT::savePCtoCVS(*ibsFiltered, "ibs_clouds_prefiltered_filtered.csv" );
+    //Util_iT::savePCtoCVS(*sceneCloudFiltered, "scene_cloud_filtered.csv" );
+    
+    std::cout<<endl << "STARTING TEST 1: test provenance vector calculation COMPARED with original implementation" << std::endl;
         
-    PV_Distance distancePV_withOriginal( *pv_it_withOriginal.rawProvenanceVectors, *raw_pv_precalculated_original_it);
+    PV_Distance distancePV_withOriginal( *pv_it_withOriginal.rawProvenanceVectors, *raw_pv_precalculated_original_it, false);
     distancePV_withOriginal.compute();
     
     
     std::cout << "Distance: [" << "Points: "  <<  distancePV_withOriginal.points_distance << ", PV: "  << distancePV_withOriginal.norm_diffs << " ]" << std::endl;
     
-    if (distancePV_withOriginal.points_distance >= 0.00001 || distancePV_withOriginal.norm_diffs >= 0.00001){
+    if (distancePV_withOriginal.points_distance >= 0.0001 || distancePV_withOriginal.norm_diffs >= 0.0001){
         std::cout << "WARNING! RAW Provenance vector are not calculated correctly" <<std::endl;
         std::cout << "I found this is possibly beacuse some points that are equidistants" <<std::endl<<std::endl;
-        std::cout << "Failure but continue test!!!"<<std::endl<<std::endl<<std::endl;;
+        std::cout << "TEST 1 Failure but continue test!!!"<<std::endl<<std::endl<<std::endl;;
     }
     else{
-        std::cout << std::endl << "SUCESS!" <<std::endl<<std::endl<<std::endl;
+        std::cout << std::endl << "TEST 1 SUCESS!" <<std::endl<<std::endl<<std::endl;
     }
     
     
@@ -229,21 +212,21 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
     
-    std::cout << "STARTING test smoothed provenance vector calculation COMPARED with original implementation" << std::endl;
+    std::cout << "STARTING TEST 2: test smoothed provenance vector calculation COMPARED with original implementation" << std::endl;
     
         
-    PV_Distance distanceSmoothedPV_withOriginal( *pv_it_withOriginal.smoothedProvenanceVectors, *smoothed_pv_precalculated_original_it);
+    PV_Distance distanceSmoothedPV_withOriginal( *pv_it_withOriginal.smoothedProvenanceVectors, *smoothed_pv_precalculated_original_it, false);
     distanceSmoothedPV_withOriginal.compute();
     
     
     std::cout << "Distance: [" << "Points: "  <<  distanceSmoothedPV_withOriginal.points_distance << ", PV: "  << distanceSmoothedPV_withOriginal.norm_diffs  << " ]"<< std::endl;
     
     if (distanceSmoothedPV_withOriginal.points_distance >= 0.0001 ||  distanceSmoothedPV_withOriginal.norm_diffs >= 0.0001){
-        std::cout << "WARNING! SMOOTHED Provenance vector were not calculated correctly" <<std::endl;
+        std::cout << "TEST 2: WARNING! SMOOTHED Provenance vector were not calculated correctly" <<std::endl;
         return EXIT_FAILURE;
     }
     else{
-        std::cout << std::endl << "SUCESS!" <<std::endl<<std::endl<<std::endl;
+        std::cout << std::endl << "TEST 2 SUCESS!" <<std::endl<<std::endl<<std::endl;
     }
     //END
     
@@ -265,33 +248,40 @@ int main(int argc, char *argv[])
     std::vector<float> mags_c_precalculated;
     std::vector<float> mags_cU_precalculated;
     
-    mags_c_precalculated = read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
+    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
    
-    mags_cU_precalculated = read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
+    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
     
     
     float nMin;
     float nMax;
-    
     Util_iT::getMinMaxMagnitudes(*raw_pv_precalculated_original_it, nMin, nMax);
+
+
+    std::cout << "STARTING TEST 3: test mapped magnitides COMPARED with original implementation" << std::endl;
+    
     
     std::vector<float> mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *sampled_by_weights, nMin, nMax, 1, 0 );
     std::vector<float> mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampled_uniformly, nMin, nMax, 1, 0 );
     
-    std::cout.precision(15);
-    std::fixed;
     for( int i = 0 ; i < mags_c.size(); i ++){
-        if( mags_c[i] != mags_c_precalculated[i] ){
+        if( Util_iT::roundDecimals( mags_c[i] ) != Util_iT::roundDecimals( mags_c_precalculated[i] ) ){
             std::cout << "error weighted" <<endl;
-            printPointWithVector(sampled_by_weights[i]);
+            printPointWithVector(sampled_by_weights->at(i));
             std::cout << mags_c[i] << " - " << mags_c_precalculated[i] <<endl;
+            return EXIT_FAILURE;
         }
         
-        if( mags_cU[i] != mags_cU_precalculated[i] ){
+        if( Util_iT::roundDecimals( mags_cU[i] ) != Util_iT::roundDecimals( mags_cU_precalculated[i] ) ){
             std::cout << "error uniform" <<endl;
+            printPointWithVector(sampled_uniformly->at(i));
             std::cout << mags_cU[i] << " - " << mags_cU_precalculated[i] <<endl;
+            return EXIT_FAILURE;
         }
     }
+    
+    std::cout << std::endl << "TEST 3 MAPPED MAGNITUDES SUCESS!" <<std::endl<<std::endl<<std::endl;
+    
     
     return EXIT_SUCCESS;
 }

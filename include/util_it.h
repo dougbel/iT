@@ -91,7 +91,7 @@ public:
     * @param cloud : The input point cloud
     * @return The mesh calculated
     */
-    static  pcl::PolygonMesh meshFromPointCloudSlower( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud ){
+    static  pcl::PolygonMesh meshFromPointCloudSlowerButBetter( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud ){
         
         pcl::PolygonMesh mesh;
         
@@ -330,7 +330,7 @@ public:
     * @param file_name The name of the file (better have a .cvs extension)
     * @param cloud The point cloud
     */
-    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointNormal> cloud){
+    static void savePCtoCVS(pcl::PointCloud<pcl::PointNormal> cloud, std::string file_name){
         
         std::ofstream file;
         
@@ -352,7 +352,7 @@ public:
     * @param file_name The name of the file (better have a .cvs extension)
     * @param cloud The point cloud
     */
-    static void savePCtoCVS(std::string file_name, pcl::PointCloud<pcl::PointXYZ> cloud){
+    static void savePCtoCVS(pcl::PointCloud<pcl::PointXYZ> cloud, std::string file_name){
         
         std::ofstream file;
                 
@@ -368,10 +368,58 @@ public:
     }
     
     
-    
-    static float round4decimals(float val)
+    /**
+     * @brief Write values of a std::vector<float> to a file
+     * 
+     * @param v The vector to save
+     * @param file The name of file to store the vector
+     * @return void
+     */
+    static void write_vector_to_file(const std::vector<float>& myVector, std::string filename)
     {
-        return floorf(val * 100000) / 100000;
+        Eigen::VectorXf v(myVector.size());
+        for(int i = 0 ; i < myVector.size(); i++){
+            v(i)= myVector.at(i);
+        }
+        
+        std::ofstream file(filename.c_str());
+        pcl::saveBinary(v,file);
+    }
+    
+    
+    
+    /**
+     * @brief Read from a file values of a std::vector<float>
+     * 
+     * @param filename The file name to be readed
+     * @return The vector which values were readed from file
+     */
+    static std::vector<float> read_vector_from_file(std::string filename)
+    {    
+        std::vector<float> newVector;
+        
+        Eigen::VectorXf v;
+        
+        std::ifstream is(filename.c_str());
+        
+        pcl::loadBinary(v, is);
+        
+        for(int i = 0 ; i < 512; i++){
+            newVector.push_back(v(i));
+        }
+        
+        return newVector;
+    }
+    
+    
+    /**
+     * @brief Return a float value "floor rounded" to 6 decimals
+     * 
+     * @return float
+     */
+    static float roundDecimals(float val)
+    {
+        return floorf(val * 1000000) / 1000000;
     }
     
         
