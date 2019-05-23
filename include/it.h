@@ -98,7 +98,9 @@ private:
     
     std::string prepareDirectory();
     
-    void defineReferences(pcl::PointXYZ anchorPoint);
+    void defineReferences( pcl::PointXYZ anchorPoint );
+    
+    void saveInfo( std::string aff_path );
     
     //void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
     

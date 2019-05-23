@@ -177,53 +177,9 @@ sw.Restart();
     std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
     this->defineReferences(middlePointObject);
     
+    this->saveInfo(aff_path);
     
     
-    // Info file name
-    {
-        std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
-        std::ofstream output_file(file_name.c_str());
-        int clusters=1;
-        float size=0;
-
-        // Previously some clustering was performed over IBS points to estimate
-        // clusters, only one (referencing=single) of this clusters was then used to estimate poses but
-        // we dropped that. Data is still saved.
-        std::string referencing="Single";
-
-        //Start saving to file
-        if(output_file.is_open())
-        {
-            std::string scene_name = "table";
-            output_file<<"Scene name:"<<scene_name<<"\n"; //TODO This could be unnecesary
-            output_file<<"Object name:"<<this->objectName<<"\n";
-            output_file<<"Clusters:"<<clusters<<"\n";
-            for(int i=0;i<clusters;i++)
-                output_file<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
-            output_file<<"Distance threshold:"<<size<<"\n";
-            output_file<<"Reference:"<<referencing<<"\n";
-            output_file<<idxRefIBS<<":"<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
-            output_file<<"ScenePoint\n";
-            output_file<<idxRefScene<<":"<<refPointScene.x<<","<<refPointScene.y<<","<<refPointScene.z<<"\n";
-            output_file<<"IbsPointVector\n";
-            output_file<<idxRefIBS<<":"<<vectSceneToIBS[0]<<","<<vectSceneToIBS[1]<<","<<vectSceneToIBS[2]<<"\n";
-            output_file<<"ObjPointVector\n";
-            output_file<<idxRefObject<<":"<<vectSceneToObject[0]<<","<<vectSceneToObject[1]<<","<<vectSceneToObject[2]<<"\n";
-            //TODO this is unnecesary
-    //         output_file<<"Object Transformation\n";
-    //         output_file<<centroidObjFinal[0]-centroidObjInit[0]<<","<<centroidObjFinal[1]-centroidObjInit[1]<<","<<centroidObjFinal[2]-centroidObjInit[2]<<"\n";
-    //         output_file<<ob_angle<<"\n"; 
-    //         output_file<<"Object Transformation Box\n";
-    //         output_file<<box2.x-box1.x<<","<<box2.y-box1.y<<","<<box2.z-box1.z<<"\n";
-    //         output_file<<"SceneToBoxCentroid\n";
-    //         output_file<<box2.x-p_scene.x<<","<<box2.y-p_scene.y<<","<<box2.z-p_scene.z<<"\n";
-        }
-        else
-        {
-            std::cout<<"Problem with data file "<<std::endl;
-        }
-        output_file.close();
-    }
     
     // Scene-to-IBS and Scene-to-object are saved in affordance keypoints file
     // As commented earlier it was used to align pointclouds
@@ -432,6 +388,55 @@ bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointClou
     //if reached this point everything is ok
     return true;
 }
+
+
+void IT::saveInfo( std::string aff_path ){
+    // Info file name
+    std::string file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".txt";
+    std::ofstream output_file(file_name.c_str());
+    int clusters=1;
+    float size=0;
+    
+    // Previously some clustering was performed over IBS points to estimate
+    // clusters, only one (referencing=single) of this clusters was then used to estimate poses but
+    // we dropped that. Data is still saved.
+    std::string referencing="Single";
+    
+    //Start saving to file
+    if(output_file.is_open())
+    {
+        std::string scene_name = "table";
+        output_file<<"Scene name:"<<scene_name<<"\n"; //TODO This could be unnecesary
+        output_file<<"Object name:"<<this->objectName<<"\n";
+        output_file<<"Clusters:"<<clusters<<"\n";
+        for(int i=0;i<clusters;i++)
+            output_file<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
+        output_file<<"Distance threshold:"<<size<<"\n";
+        output_file<<"Reference:"<<referencing<<"\n";
+        output_file<<idxRefIBS<<":"<<refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z<<"\n";
+        output_file<<"ScenePoint\n";
+        output_file<<idxRefScene<<":"<<refPointScene.x<<","<<refPointScene.y<<","<<refPointScene.z<<"\n";
+        output_file<<"IbsPointVector\n";
+        output_file<<idxRefIBS<<":"<<vectSceneToIBS[0]<<","<<vectSceneToIBS[1]<<","<<vectSceneToIBS[2]<<"\n";
+        output_file<<"ObjPointVector\n";
+        output_file<<idxRefObject<<":"<<vectSceneToObject[0]<<","<<vectSceneToObject[1]<<","<<vectSceneToObject[2]<<"\n";
+        //TODO this is unnecesary
+        //         output_file<<"Object Transformation\n";
+        //         output_file<<centroidObjFinal[0]-centroidObjInit[0]<<","<<centroidObjFinal[1]-centroidObjInit[1]<<","<<centroidObjFinal[2]-centroidObjInit[2]<<"\n";
+        //         output_file<<ob_angle<<"\n"; 
+        //         output_file<<"Object Transformation Box\n";
+        //         output_file<<box2.x-box1.x<<","<<box2.y-box1.y<<","<<box2.z-box1.z<<"\n";
+        //         output_file<<"SceneToBoxCentroid\n";
+        //         output_file<<box2.x-p_scene.x<<","<<box2.y-p_scene.y<<","<<box2.z-p_scene.z<<"\n";
+    }
+    else
+    {
+        std::cout<<"Problem with data file "<<std::endl;
+    }
+    output_file.close();
+    
+}
+
 
 void IT::defineReferences(pcl::PointXYZ anchorPoint){
     //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA", por ahora se calcula como el punto mas cercano al centroide del objeto    
