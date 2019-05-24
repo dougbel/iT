@@ -63,7 +63,7 @@ void IT::calculate(){
     
 //     //TODO erase this, it is only for developing porpouses
     
-    pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    pcl::io::loadPCDFile("../../test/data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Searching nearest neighbours (from IBS to ) and calculating smoot provenance vector
@@ -390,6 +390,11 @@ bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pa
     pcl::saveBinary(descriptor,file);
     std::ofstream file2(spinvectors_file.c_str());
     pcl::saveBinary(vectors,file2);
+    std::cout.precision(15);
+    std::fixed;
+    for(int i =0 ; i < vectors.rows(); i++){
+        std::cout << vectors(i,0) << ","<< vectors(i,1)<< ","<<vectors(i,2)<<std::endl;
+    }
     std::cout<<"Wrote: "<<spin_file<<" and "<<spinvectors_file<<std::endl;
     //if reached this point everything is ok
     return true;

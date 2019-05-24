@@ -45,30 +45,26 @@ void Spinner_iT::calculateSpinings(){
     PointCloud::Ptr spinCloud(new PointCloud);
     PointCloud::Ptr relative_spin(new PointCloud);
     PointCloud::Ptr xyz_2(new PointCloud);
+    
     pcl::copyPointCloud(*sample,*xyz_target);
     pcl::copyPointCloud(*sample,*spinCloud);
-    
     pcl::copyPointCloud(*relativePoints,*relative_spin);
-    std::cout<<"Spining "<<xyz_2->size()<<" points"<<std::endl;
-    //if(viewer->contains("Spincloud"))
-    //  viewer->updatePointCloud(relative_spin,"Spincloud");
-    //else
-    //  viewer->addPointCloud(relative_spin,"Spincloud");
-    //while(!viewer->wasStopped())
-    //        viewer->spinOnce(100);
-    //    viewer->resetStoppedFlag();
-
+    
+    //pcl::io::savePCDFile("output_spin_orientation_.pcd", *relativePoints);
+    
     for (int i=1;i<orientations;i++)
     {   
         // a) rotates sample points to the next orientation an save in xyz_target
-        pcl::copyPointCloud(*sample,*xyz_2);
-        rotateCloud( xyz_2, xyz_target, i*2*M_PI/orientations, 'z', spiningPoint );
-        *spinCloud+=*xyz_target; //se agrega el resultado de la rotación
+        //pcl::copyPointCloud(*sample,*xyz_2);
+        //rotateCloud( xyz_2, xyz_target, i*2*M_PI/orientations, 'z', spiningPoint );
+        //*spinCloud+=*xyz_target; //se agrega el resultado de la rotación
         
-        
+        //b) make rotation with point translate to reference point  //TODO this part is not useful at all
         pcl::copyPointCloud(*relativePoints,*xyz_2);
         rotateCloud(xyz_2,xyz_target, i*2*M_PI/orientations,'z',true);
         *relative_spin+=*xyz_target;
+        
+        //pcl::io::savePCDFile("output_spin_orientation_"+std::to_string(i)+".pcd", *xyz_target);
         
         //std::cout<<"Spincloud: "<<xyz_target->size()<<std::endl;
         //if(viewer->contains("Spincloud"))
