@@ -32,16 +32,7 @@ void Spinner_iT::calculateSpinings(){
         //lengths.at(j)=1-((v.norm()- minW) * (1 - 0) / (maxW - minW) + 0);
         //xyz_target->push_back(pcl::PointXYZ(aP.x,aP.y,aP.z));
     }
-    //BEGIN
-    //PointCloudC::Ptr anchor(new PointCloudC);
-    //pcl::PointXYZRGB coloredanchor(0,255,0);
-    //coloredanchor.x=spiningPoint.x;
-    //coloredanchor.y=spiningPoint.y;
-    //coloredanchor.z=spiningPoint.z;
-    //anchor->push_back(coloredanchor);
-    //viewer->addPointCloud(anchor,"Anchor");
-    //viewer->setPointCloudRenderingProperties (pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 5,"Anchor");
-    //END
+
     PointCloud::Ptr spinCloud(new PointCloud);
     PointCloud::Ptr relative_spin(new PointCloud);
     PointCloud::Ptr xyz_2(new PointCloud);
@@ -76,14 +67,9 @@ void Spinner_iT::calculateSpinings(){
         //        viewer->resetStoppedFlag();
 
     }
-    for(int i=0;i<spinCloud->size();i++){
+    for(int i=0;i<relative_spin->size();i++){
         descriptor.row(i)=Eigen::Vector3f(relative_spin->at(i).x,relative_spin->at(i).y,relative_spin->at(i).z);
-        
-        //if( (spinCloud->at(i).x-spiningPoint.x) != relative_spin->at(i).x  ||  (spinCloud->at(i).y-spiningPoint.y) != relative_spin->at(i).y  ||  (spinCloud->at(i).z-spiningPoint.z) != relative_spin->at(i).z )  
-        //    std::cout << "x " << (spinCloud->at(i).x-spiningPoint.x) << ", " << relative_spin->at(i).x << "  y " << (spinCloud->at(i).y-spiningPoint.y) << ", " << relative_spin->at(i).y << "  z " << (spinCloud->at(i).z-spiningPoint.z) << ", " << relative_spin->at(i).z << std::endl;
-        
     }
-    std::cout<<"Descriptor "<<descriptor.rows()<<std::endl;
     
 }
 

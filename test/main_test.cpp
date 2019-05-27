@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 //         return EXIT_FAILURE;
 //     }
 //     else{
-//         std::cout << std::endl << "SUCESS!" <<std::endl<<std::endl<<std::endl;
+//         std::cout << std::endl << "SUCCESS!" <<std::endl<<std::endl<<std::endl;
 //     }
 //     
 //     
@@ -171,118 +171,118 @@ int main(int argc, char *argv[])
 //         return EXIT_FAILURE;
 //     }
 //     else{
-//         std::cout << std::endl << "SUCESS!" <<std::endl<<std::endl<<std::endl;
+//         std::cout << std::endl << "SUCCESS!" <<std::endl<<std::endl<<std::endl;
 //     }
     //END
     
     
     
-//     //SECONDLY COMPARE WITH IMPLEMENTATION WITH OUTPUTS IN  ORIGINAL CODE 
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     //////  RAW PROVENANCE VECTORS CALCULATION comparing with original implementation
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     //BEGIN
-// 
-//     
-//     
-//     //Util_iT::savePCtoCVS(*ibsFiltered, "ibs_clouds_prefiltered_filtered.csv" );
-//     //Util_iT::savePCtoCVS(*sceneCloudFiltered, "scene_cloud_filtered.csv" );
-//     
-//     std::cout<<endl << "STARTING TEST 1: test provenance vector calculation COMPARED with original implementation" << std::endl;
-//         
-//     PV_Distance distancePV_withOriginal( *pv_it_withOriginal.rawProvenanceVectors, *raw_pv_precalculated_original_it, false);
-//     distancePV_withOriginal.compute();
-//     
-//     
-//     std::cout << "Distance: [" << "Points: "  <<  distancePV_withOriginal.points_distance << ", PV: "  << distancePV_withOriginal.norm_diffs << " ]" << std::endl;
-//     
-//     if (distancePV_withOriginal.points_distance >= 0.0001 || distancePV_withOriginal.norm_diffs >= 0.0001){
-//         std::cout << "WARNING! RAW Provenance vector are not calculated correctly" <<std::endl;
-//         std::cout << "I found this is possibly beacuse some points that are equidistants" <<std::endl<<std::endl;
-//         std::cout << "TEST 1 Failure but continue test!!!"<<std::endl<<std::endl<<std::endl;;
-//     }
-//     else{
-//         std::cout << std::endl << "TEST 1 SUCESS!" <<std::endl<<std::endl<<std::endl;
-//     }
-//     
-//     
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     //////  SMOOTH PROVENANCE VECTORS CALCULATION PROVE with original implementation
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     
-//     std::cout << "STARTING TEST 2: test smoothed provenance vector calculation COMPARED with original implementation" << std::endl;
-//     
-//         
-//     PV_Distance distanceSmoothedPV_withOriginal( *pv_it_withOriginal.smoothedProvenanceVectors, *smoothed_pv_precalculated_original_it, false);
-//     distanceSmoothedPV_withOriginal.compute();
-//     
-//     
-//     std::cout << "Distance: [" << "Points: "  <<  distanceSmoothedPV_withOriginal.points_distance << ", PV: "  << distanceSmoothedPV_withOriginal.norm_diffs  << " ]"<< std::endl;
-//     
-//     if (distanceSmoothedPV_withOriginal.points_distance >= 0.0001 ||  distanceSmoothedPV_withOriginal.norm_diffs >= 0.0001){
-//         std::cout << "TEST 2: WARNING! SMOOTHED Provenance vector were not calculated correctly" <<std::endl;
-//         return EXIT_FAILURE;
-//     }
-//     else{
-//         std::cout << std::endl << "TEST 2 SUCESS!" <<std::endl<<std::endl<<std::endl;
-//     }
-//     //END
-//     
-//     
-//     
-//     
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     //////  MAPPING MAGNITUDES OF SAMPLING
-//     ////////////////////////////////////////////////////////////////////////
-//     ////////////////////////////////////////////////////////////////////////
-//     // extract volume of interest from the scene
-//     pcl::PointCloud<PointWithVector>::Ptr sampled_by_weights(new pcl::PointCloud<PointWithVector>);
-//     pcl::io::loadPCDFile("../../test/data/test_2_field_sample_with_weights.pcd", *sampled_by_weights);
-//     
-//     pcl::PointCloud<PointWithVector>::Ptr sampled_uniformly(new pcl::PointCloud<PointWithVector>);
-//     pcl::io::loadPCDFile("../../test/data/test_2_field_sample_uniformly.pcd", *sampled_uniformly);
-//     
-//     std::vector<float> mags_c_precalculated;
-//     std::vector<float> mags_cU_precalculated;
-//     
-//     mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
-//    
-//     mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
-//     
-//     
-//     float nMin;
-//     float nMax;
-//     Util_iT::getMinMaxMagnitudes(*raw_pv_precalculated_original_it, nMin, nMax);
-// 
-// 
-//     std::cout << "STARTING TEST 3: test mapped magnitides COMPARED with original implementation" << std::endl;
-//     
-//     
-//     std::vector<float> mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *sampled_by_weights, nMin, nMax, 1, 0 );
-//     std::vector<float> mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampled_uniformly, nMin, nMax, 1, 0 );
-//     
-//     for( int i = 0 ; i < mags_c.size(); i ++){
-//         if( Util_iT::roundDecimals( mags_c[i] ) != Util_iT::roundDecimals( mags_c_precalculated[i] ) ){
-//             std::cout << "error weighted" <<endl;
-//             printPointWithVector(sampled_by_weights->at(i));
-//             std::cout << mags_c[i] << " - " << mags_c_precalculated[i] <<endl;
-//             return EXIT_FAILURE;
-//         }
-//         
-//         if( Util_iT::roundDecimals( mags_cU[i] ) != Util_iT::roundDecimals( mags_cU_precalculated[i] ) ){
-//             std::cout << "error uniform" <<endl;
-//             printPointWithVector(sampled_uniformly->at(i));
-//             std::cout << mags_cU[i] << " - " << mags_cU_precalculated[i] <<endl;
-//             return EXIT_FAILURE;
-//         }
-//     }
-//     
-//     std::cout << std::endl << "TEST 3 MAPPED MAGNITUDES SUCESS!" <<std::endl<<std::endl<<std::endl;
+    //SECONDLY COMPARE WITH IMPLEMENTATION WITH OUTPUTS IN  ORIGINAL CODE 
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //////  RAW PROVENANCE VECTORS CALCULATION comparing with original implementation
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //BEGIN
+
+    
+    
+    //Util_iT::savePCtoCVS(*ibsFiltered, "ibs_clouds_prefiltered_filtered.csv" );
+    //Util_iT::savePCtoCVS(*sceneCloudFiltered, "scene_cloud_filtered.csv" );
+    
+    std::cout<<endl << "STARTING TEST 1: test raw provenance vector calculation COMPARED with original implementation" << std::endl;
+        
+    PV_Distance distancePV_withOriginal( *pv_it_withOriginal.rawProvenanceVectors, *raw_pv_precalculated_original_it, false);
+    distancePV_withOriginal.compute();
+    
+    
+    std::cout << "Distance: [" << "Points: "  <<  distancePV_withOriginal.points_distance << ", PV: "  << distancePV_withOriginal.norm_diffs << " ]" << std::endl;
+    
+    if (distancePV_withOriginal.points_distance >= 0.0001 || distancePV_withOriginal.norm_diffs >= 0.0001){
+        std::cout << "WARNING! RAW Provenance vector are not calculated correctly" <<std::endl;
+        std::cout << "I found this is possibly beacuse some points that are equidistants" <<std::endl;
+        std::cout << "TEST 1 Failure but continue test!!!"<<std::endl<<std::endl<<std::endl;;
+    }
+    else{
+        std::cout << std::endl << "TEST 1 raw provenance vectors SUCCESS!" <<std::endl;
+    }
+    
+    
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //////  SMOOTH PROVENANCE VECTORS CALCULATION PROVE with original implementation
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    
+    std::cout << "STARTING TEST 1b: test smoothed provenance vector calculation COMPARED with original implementation" << std::endl;
+    
+        
+    PV_Distance distanceSmoothedPV_withOriginal( *pv_it_withOriginal.smoothedProvenanceVectors, *smoothed_pv_precalculated_original_it, false);
+    distanceSmoothedPV_withOriginal.compute();
+    
+    
+    std::cout << "Distance: [" << "Points: "  <<  distanceSmoothedPV_withOriginal.points_distance << ", PV: "  << distanceSmoothedPV_withOriginal.norm_diffs  << " ]"<< std::endl;
+    
+    if (distanceSmoothedPV_withOriginal.points_distance >= 0.0001 ||  distanceSmoothedPV_withOriginal.norm_diffs >= 0.0001){
+        std::cout << "TEST 1b: WARNING! SMOOTHED Provenance vector were not calculated correctly" <<std::endl;
+        return EXIT_FAILURE;
+    }
+    else{
+        std::cout << "TEST 1b smoothed provenance vectors SUCCESS!" <<std::endl<<std::endl<<std::endl;
+    }
+    //END
+    
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    //////  MAPPING MAGNITUDES OF SAMPLING
+    ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+    // extract volume of interest from the scene
+    pcl::PointCloud<PointWithVector>::Ptr sampled_by_weights(new pcl::PointCloud<PointWithVector>);
+    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_with_weights.pcd", *sampled_by_weights);
+    
+    pcl::PointCloud<PointWithVector>::Ptr sampled_uniformly(new pcl::PointCloud<PointWithVector>);
+    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_uniformly.pcd", *sampled_uniformly);
+    
+    std::vector<float> mags_c_precalculated;
+    std::vector<float> mags_cU_precalculated;
+    
+    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
+   
+    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
+    
+    
+    float nMin;
+    float nMax;
+    Util_iT::getMinMaxMagnitudes(*raw_pv_precalculated_original_it, nMin, nMax);
+
+
+    std::cout << "STARTING TEST 2: test mapped magnitides COMPARED with original implementation" << std::endl;
+    
+    
+    std::vector<float> mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *sampled_by_weights, nMin, nMax, 1, 0 );
+    std::vector<float> mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampled_uniformly, nMin, nMax, 1, 0 );
+    
+    for( int i = 0 ; i < mags_c.size(); i ++){
+        if( Util_iT::roundDecimals( mags_c[i] ) != Util_iT::roundDecimals( mags_c_precalculated[i] ) ){
+            std::cout << "error weighted" <<endl;
+            printPointWithVector(sampled_by_weights->at(i));
+            std::cout << mags_c[i] << " - " << mags_c_precalculated[i] <<endl;
+            return EXIT_FAILURE;
+        }
+        
+        if( Util_iT::roundDecimals( mags_cU[i] ) != Util_iT::roundDecimals( mags_cU_precalculated[i] ) ){
+            std::cout << "error uniform" <<endl;
+            printPointWithVector(sampled_uniformly->at(i));
+            std::cout << mags_cU[i] << " - " << mags_cU_precalculated[i] <<endl;
+            return EXIT_FAILURE;
+        }
+    }
+    
+    std::cout << "TEST 2 MAPPED MAGNITUDES SUCCESS!" <<std::endl<<std::endl<<std::endl;
     
     
     
@@ -293,6 +293,8 @@ int main(int argc, char *argv[])
     //////  SPINNING POINT CLOUDS
     ////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////
+    
+    std::cout << "STARTING TEST 3: test for SPINING ALGORITHM COMPARED with original implementation" << std::endl;
     
 //     pcl::PointCloud<PointWithVector>::Ptr to_spin(new pcl::PointCloud<PointWithVector>);
 //     pcl::io::loadPCDFile("../../test/data/test_3_spin_visual.pcd", *to_spin);
@@ -305,39 +307,57 @@ int main(int argc, char *argv[])
 //     std::cout << "You must check by your self output file "<< endl;
     
     
-    std::ifstream ifs ( "../../test/data/test_3_spin_8_vectors.dat", std::ifstream::in );
-    Eigen::MatrixXf data_counts;
-    
-    data_counts.resize( 512, 3 ); 
-    
+    std::ifstream ifs_vectors ( "../../test/data/test_3_spin_8_vectors.dat", std::ifstream::in );
+    Eigen::MatrixXf spin_vectors_precalculated;
+    spin_vectors_precalculated.resize( IT::sampleSize, 3 ); 
+    pcl::loadBinary( spin_vectors_precalculated,ifs_vectors );
+ 
 
-    pcl::loadBinary( data_counts,ifs );
+    std::ifstream ifs_descriptor ( "../../test/data/test_3_spin_8_descriptor.dat", std::ifstream::in );
+    Eigen::MatrixXf spin_descriptor_precalculated;
+    spin_descriptor_precalculated.resize( IT::sampleSize*8, 3 ); 
+    pcl::loadBinary( spin_descriptor_precalculated,ifs_descriptor );
     
-    std::cout<<" size: "<<data_counts.rows()<<","<<data_counts.cols()<<std::endl;
     
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    
-    for(int i =0 ; i < data_counts.rows(); i++){
-        pcl::PointXYZ p( data_counts(i,0), data_counts(i,1), data_counts(i,2) );
-        cloud->push_back(p);
-        std::cout << data_counts(i,0) << ","<< data_counts(i,1)<< ","<<data_counts(i,2)<<std::endl;
-    }
-    
-    pcl::io::savePCDFile("temp.pcd", *cloud);
-    
+    pcl::PointCloud<PointWithVector>::Ptr sample_to_spin(new pcl::PointCloud<PointWithVector>);
+    pcl::io::loadPCDFile("../../test/data/test_3_sample_pointwithvector_to_spin.pcd", *sample_to_spin);
     pcl::PointXYZ spinning_point(0.951572120189667,0.556678950786591,1.17748117446899);
     
-    //Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointXYZ spiningPoint, int orientations);
-    //Spinner_iT spinner2( pv_it_withOriginal, spinning_point, 8 );
-    //spinner2.calculateSpinings();
+    Spinner_iT spinner2( sample_to_spin, spinning_point, 8 );
+    spinner2.calculateSpinings();
+    
+        
+    for(int i =0 ; i < spin_vectors_precalculated.rows(); i++){
+	if( Util_iT::roundDecimals( spinner2.vectors(i,0) ) != Util_iT::roundDecimals( spin_vectors_precalculated(i,0) ) || 
+	    Util_iT::roundDecimals( spinner2.vectors(i,1) ) != Util_iT::roundDecimals( spin_vectors_precalculated(i,1) ) || 
+	    Util_iT::roundDecimals( spinner2.vectors(i,2) ) != Util_iT::roundDecimals( spin_vectors_precalculated(i,2) ) )
+	{
+	    std::cout << i<<") "<< spin_vectors_precalculated(i,0) << "-"<< spinner2.vectors(i,0) << "," 
+		  << spin_vectors_precalculated(i,1) << "-"<< spinner2.vectors(i,1) << "," 
+		  << spin_vectors_precalculated(i,2) << "-"<< spinner2.vectors(i,2 )<< std::endl;
+		  return EXIT_FAILURE;
+	    
+	}
+    }
+    
+    for(int i =0 ; i < spin_descriptor_precalculated.rows(); i++){
+	if( Util_iT::roundDecimals( spinner2.descriptor(i,0) ) != Util_iT::roundDecimals( spin_descriptor_precalculated(i,0) ) || 
+	    Util_iT::roundDecimals( spinner2.descriptor(i,1) ) != Util_iT::roundDecimals( spin_descriptor_precalculated(i,1) ) || 
+	    Util_iT::roundDecimals( spinner2.descriptor(i,2) ) != Util_iT::roundDecimals( spin_descriptor_precalculated(i,2) ))
+	{
+	    std::cout << i<<") "<<spin_descriptor_precalculated(i,0) << "-"<< spinner2.descriptor(i,0) << ","
+	    << spin_descriptor_precalculated(i,1) << "-"<< spinner2.descriptor(i,1) << ","
+	    << spin_descriptor_precalculated(i,2) << "-"<< spinner2.descriptor(i,2) << std::endl; 
+	    return EXIT_FAILURE;
+	}
+    }
+
+    
+     std::cout << "TEST 3 SPINNING SUCCESS!" <<std::endl<<std::endl<<std::endl;
     
     
     
     
-    
-    
-    
-    std::cout << "l"<<endl;
     
     
     

@@ -69,11 +69,11 @@ public:
     std::vector<float> mags_cU;
     
     
+    //Sample size to take from tensor
+    static const int sampleSize = 512; 
     
 private:
-    
-    //Sample size to take from tensor
-    const int sampleSize = 512;   
+      
     
     //SPINNING SECTION
     
