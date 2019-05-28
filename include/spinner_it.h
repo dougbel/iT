@@ -18,7 +18,7 @@ public:
     pcl::PointXYZ spiningPoint;
     int orientations;
     
-        //SPINNING SECTION
+    //SPINNING SECTION
     // Definition of Matrix in Eigen
     //  Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
     // Eigen::RowMajor is the storage order   ===>> Normaly Eigen saves them colum by colum

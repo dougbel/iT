@@ -243,49 +243,44 @@ sw.Restart();
     // So we compute this X-orientations and store them for testing.
 
     // Spin cloud for weight-sampled
-    createSpin( new_sampleCloud2, aff_path );
-    // New representation for agglomerative descriptor
-    // In following release, multiple affordaces can be detected
-    // at same time, single affordance representation (this code)
-    // is adapated to work with newer code. This "adaptation" is
-    // basically wrap (or format) the descriptor in a highly
-    // parallelizble way.
-
-    if(getAggloRepresentation(mags_c,aff_path))
-    {
-        std::cout<<"Everything ok"<<std::endl;
-    }
+    Spinner_iT spinnerW( new_sampleCloud2, refPointScene, numOrientations);
+    spinnerW.calculateSpinings();
+    saveSpin(spinnerW, aff_path );
+    // New representation for agglomerative descriptor in following release, multiple affordaces can be detected
+    // at same time, single affordance representation (this code) is adapated to work with newer code. This "adaptation" is
+    // basically wrap (or format) the descriptor in a highly parallelizble way.
+    Agglomerator_IT agglomeratorW( spinnerW.vectors, spinnerW.descriptor, mags_c );
+    agglomeratorW.compileAgglomeration();
+    saveAggloRepresentation(agglomeratorW,aff_path);
+    
     
     // Spin cloud for uniform sampled
-    createSpin(new_sampleCloudU,aff_path,8,true);
+    Spinner_iT spinnerU( new_sampleCloudU, refPointScene, numOrientations);
+    spinnerU.calculateSpinings();
+    saveSpin(spinnerU,aff_path,true);
     
-    if(getAggloRepresentation(mags_cU,aff_path,true))
-    {
-        std::cout<<"Everything ok"<<std::endl;
-    }
+    Agglomerator_IT agglomeratorU( spinnerU.vectors, spinnerU.descriptor, mags_c );
+    agglomeratorU.compileAgglomeration();
+    saveAggloRepresentation(agglomeratorU, aff_path,true);
+    
     
 }
 
 
 
-bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, bool uniform)
+bool IT::saveAggloRepresentation(Agglomerator_IT agglomerator,  std::string pathh, bool uniform)
 {
 
-    Agglomerator_IT agglomerator( this->vectors, this->descriptor, mags );
-    
-    agglomerator.compileAgglomeration();
-    
-    
+   
     std::cout<<"Point counts "<<agglomerator.data_individual<<std::endl;
     std::string base_name;
-    std::stringstream ii;
-    ii << agglomerator.n_orientations;
+    
     // Save everything with a correct name
     // if uniform sampling or different
     if(uniform)
-        base_name = pathh + "UNew_"+ this->affordanceName + "_" + this->objectName + "_descriptor_" + ii.str();
+        base_name = pathh + "UNew_"+ this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator.n_orientations);
     else
-        base_name = pathh + "New_" + this->affordanceName + "_" + this->objectName + "_descriptor_" + ii.str();
+        base_name = pathh + "New_" + this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator.n_orientations);
     
     std::string file_name=base_name+"_members.pcd";
     pcl::io::savePCDFile(file_name.c_str(),*agglomerator.aux_cloud);
@@ -308,52 +303,34 @@ bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, boo
     file_name=pathh+this->affordanceName+"_"+this->objectName+"_point_count.dat";
     std::ofstream ofs (file_name, std::ofstream::out);
     pcl::saveBinary(agglomerator.data_individual,ofs);
+    
     return true;
 }
 
 
 
-
-
-    
-    
-
-
-
-
-bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pathh, int orientations, bool uniform){
-    std::stringstream ii;
-    ii<<orientations;
-    Spinner_iT spinner( sample, refPointScene, orientations);
-    spinner.calculateSpinings();
-    
-    this->descriptor = spinner.descriptor;
-    this->vectors    = spinner.vectors;
-    
+bool IT::saveSpin(Spinner_iT spinner, std::string pathh, bool uniform){
     
     std::string spin_file;
     std::string spinvectors_file;
+    
     if(uniform)
     {
-        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spinU_" + ii.str() + ".dat";
-        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinUvectors_" + ii.str() + ".dat";
+        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spinU_" + std::to_string(numOrientations) + ".dat";
+        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinUvectors_" + std::to_string(numOrientations) + ".dat";
     }
     else
     {
-        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spin_"+ii.str()+".dat";
-        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinvectors_"+ii.str()+".dat";
+        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spin_"+ std::to_string(numOrientations)+".dat";
+        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinvectors_"+ std::to_string(numOrientations)+".dat";
     }
+    
     std::ofstream file(spin_file.c_str());
-    pcl::saveBinary(descriptor,file);
+    pcl::saveBinary(spinner.descriptor,file);
+    
     std::ofstream file2(spinvectors_file.c_str());
-    pcl::saveBinary(vectors,file2);
-//     std::cout.precision(15);
-//     std::fixed;
-//     for(int i =0 ; i < vectors.rows(); i++){
-//         std::cout << vectors(i,0) << ","<< vectors(i,1)<< ","<<vectors(i,2)<<std::endl;
-//     }
-//     std::cout<<"Wrote: "<<spin_file<<" and "<<spinvectors_file<<std::endl;
-    //if reached this point everything is ok
+    pcl::saveBinary(spinner.vectors,file2);
+    
     return true;
 }
 

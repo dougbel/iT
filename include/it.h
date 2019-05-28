@@ -70,15 +70,16 @@ public:
     
     
     //Sample size to take from tensor
-    static const int sampleSize = 512; 
+    static const int sampleSize = 512;
+    static const int numOrientations = 8;
     
 private:
       
     
     //SPINNING SECTION
     
-    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; //TODO ERASE THEM! this variables are used to calculate the spin of iT
-    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO ERASE THEM! this variables are used to calculate the spin of iT
+//     Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; //TODO ERASE THEM! this variables are used to calculate the spin of iT
+//     Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO ERASE THEM! this variables are used to calculate the spin of iT
     
     
     /**
@@ -92,9 +93,9 @@ private:
     std::vector<float> getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV);
     
     
-    bool getAggloRepresentation(std::vector<float> &mags, std::string pathh,bool uniform=false);
+    bool saveAggloRepresentation(Agglomerator_IT agglomerator, std::string pathh,bool uniform=false);
     
-    bool createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pathh, int orientations=8,bool uniform=false);
+    bool saveSpin(Spinner_iT spinner, std::string pathh, bool uniform=false);
     
     std::string prepareDirectory();
     
