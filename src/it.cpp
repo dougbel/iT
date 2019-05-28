@@ -208,24 +208,7 @@ sw.Restart();
     new_sampleCloudU->push_back(last);
     
     
-    // Save everything
-    std::string new_ibs_field   = aff_path + this->affordanceName + "_" + this->objectName + "_field.pcd";
-    std::string new_ibs_sample  = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_better.pcd";
-    std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_betterUniform.pcd";
-    
-    std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
-    std::string clean_ibs       = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + "_clean.pcd";  // TODO It doesn't have any sense
-    std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
-    
-    pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *field);
-    pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);   // here reference point are saved, it is better not to save them 
-    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
-    
-    pcl::io::savePCDFile( smoother_field.c_str(), *smoothField);
-    pcl::io::savePCDFile( clean_ibs, *copyIBS);
-    pcl::io::savePCDFile( full_ibs, *ibsFiltered);
-    
-    std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
+    saveProvenanceIBS(aff_path, pv_it);
     
     
     //TODO I add this point but inmediatly erase it because I erased their necesity in the "SPIN CALCULATION"
@@ -308,7 +291,6 @@ bool IT::saveAggloRepresentation(Agglomerator_IT agglomerator,  std::string path
 }
 
 
-
 bool IT::saveSpin(Spinner_iT spinner, std::string pathh, bool uniform){
     
     std::string spin_file;
@@ -333,6 +315,32 @@ bool IT::saveSpin(Spinner_iT spinner, std::string pathh, bool uniform){
     
     return true;
 }
+
+
+void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
+{
+    
+     // Save everything
+    std::string new_ibs_field   = aff_path + this->affordanceName + "_" + this->objectName + "_field.pcd";
+    std::string new_ibs_sample  = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_better.pcd";
+    std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_betterUniform.pcd";
+    
+    std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
+    //std::string clean_ibs       = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + "_clean.pcd";  // TODO It doesn't have any sense
+    std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
+    
+    pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it.rawProvenanceVectors);
+    pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);   // here reference point are saved, it is better not to save them 
+    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
+    
+    pcl::io::savePCDFile( smoother_field.c_str(), *pv_it.smoothedProvenanceVectors);
+    //pcl::io::savePCDFile( clean_ibs, *copyIBS);
+    pcl::io::savePCDFile( full_ibs, *ibsFiltered);
+    
+    std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
+    
+}
+
 
 
 void IT::saveBasicInfo( std::string aff_path ){

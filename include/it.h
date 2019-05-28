@@ -103,6 +103,8 @@ private:
     
     void saveBasicInfo( std::string aff_path );
     
+    void saveProvenanceIBS( std::string aff_path, ProvenanceVectors_iT pv_it );
+    
     //void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
     
     //void rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,bool origin);
