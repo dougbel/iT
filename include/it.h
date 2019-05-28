@@ -10,7 +10,6 @@
 #include <pcl/search/kdtree.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/filters/extract_indices.h>
-//#include <pcl/common/transforms.h>
 
 #include <boost/filesystem.hpp>
 
@@ -25,6 +24,7 @@
 #include "samplerweighted_it.h"
 #include "sampleruniform_it.h"
 #include "spinner_it.h"
+#include "agglomerator_it.h"
 #include "StopWatch.h"
 
 

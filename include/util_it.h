@@ -375,7 +375,7 @@ public:
      * @param file The name of file to store the vector
      * @return void
      */
-    static void write_vector_to_file(const std::vector<float>& myVector, std::string filename)
+    static void save_vector_to_file(const std::vector<float>& myVector, std::string filename)
     {
         Eigen::VectorXf v(myVector.size());
         for(int i = 0 ; i < myVector.size(); i++){

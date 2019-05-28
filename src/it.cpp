@@ -271,58 +271,15 @@ sw.Restart();
 bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, bool uniform)
 {
 
-    int sampleSize=vectors.rows();
-    PointCloudT::Ptr aux_cloud(new PointCloudT);
-    aux_cloud->resize(descriptor.rows());
-    PointCloudT::Ptr useful_cloud(new PointCloudT);
-    useful_cloud->resize(descriptor.rows());
-    PointCloudT::Ptr better_approx(new PointCloudT);
-    better_approx->resize(descriptor.rows());
-    PointCloudT::Ptr bare_points(new PointCloudT);
-    bare_points->resize(descriptor.rows());
-    PointCloudT::Ptr vector_ids_agglomerative(new PointCloudT);
-    vector_ids_agglomerative->resize(descriptor.rows());
-    PointCloudT::Ptr vectors_data_cloud(new PointCloudT);
-    vectors_data_cloud->resize(descriptor.rows());
-    // point counts per affordance per orientation
-    // Mostly useful for normalization in multiple affordance prediction
-    // for single affordance case: 1x8 matrix with sampleSize in each element
-    int n_orientations=descriptor.rows()/vectors.rows();
-    Eigen::MatrixXf data_individual(1,n_orientations);
-    data_individual<<Eigen::MatrixXf::Zero(1,n_orientations);
-
-    std::cout << data_individual<<std::endl;
-
-    for(int i=0;i<descriptor.rows();i++)
-    {
-        int orientation_id=std::floor(i/sampleSize); // [0-nOrientations) default: 8 orientations
-        data_individual(0,orientation_id)+=1;
-        int smaller_id=i-(sampleSize*orientation_id); // [0-sampleSize)
-        aux_cloud->at(i).x=1;
-        aux_cloud->at(i).y=i;
-        aux_cloud->at(i).z=0;
-
-        useful_cloud->at(i).x=1;
-        useful_cloud->at(i).y=orientation_id;
-        useful_cloud->at(i).z=smaller_id;
-
-        better_approx->at(i).x=bare_points->at(i).x=descriptor(i,0);
-        better_approx->at(i).y=bare_points->at(i).y=descriptor(i,1);
-        better_approx->at(i).z=bare_points->at(i).z=descriptor(i,2);
-
-        vector_ids_agglomerative->at(i).x=vectors(smaller_id,0);
-        vector_ids_agglomerative->at(i).y=vectors(smaller_id,1);
-        vector_ids_agglomerative->at(i).z=vectors(smaller_id,2);
-
-        Eigen::Vector3f aVector=vectors.row(smaller_id);
-        vectors_data_cloud->at(i).x=aVector.norm();
-        vectors_data_cloud->at(i).y=mags.at(smaller_id);
-        vectors_data_cloud->at(i).z=0;
-    }
-    std::cout<<"Point counts "<<data_individual<<std::endl;
+    Agglomerator_IT agglomerator( this->vectors, this->descriptor, mags );
+    
+    agglomerator.compileAgglomeration();
+    
+    
+    std::cout<<"Point counts "<<agglomerator.data_individual<<std::endl;
     std::string base_name;
     std::stringstream ii;
-    ii<<n_orientations;
+    ii << agglomerator.n_orientations;
     // Save everything with a correct name
     // if uniform sampling or different
     if(uniform)
@@ -331,26 +288,26 @@ bool IT::getAggloRepresentation(std::vector<float> &mags, std::string pathh, boo
         base_name = pathh + "New_" + this->affordanceName + "_" + this->objectName + "_descriptor_" + ii.str();
     
     std::string file_name=base_name+"_members.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*aux_cloud);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.aux_cloud);
     
     file_name=base_name+"_extra.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*useful_cloud);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.useful_cloud);
     
     file_name=base_name+".pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*better_approx);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.better_approx);
     
     file_name=base_name+"_points.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*bare_points);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.bare_points);
     
     file_name=base_name+"_vectors.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*vector_ids_agglomerative);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.vector_ids_agglomerative);
     
     file_name=base_name+"_vdata.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*vectors_data_cloud);
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.vectors_data_cloud);
     
     file_name=pathh+this->affordanceName+"_"+this->objectName+"_point_count.dat";
     std::ofstream ofs (file_name, std::ofstream::out);
-    pcl::saveBinary(data_individual,ofs);
+    pcl::saveBinary(agglomerator.data_individual,ofs);
     return true;
 }
 
@@ -390,12 +347,12 @@ bool IT::createSpin(pcl::PointCloud<PointWithVector>::Ptr sample, std::string pa
     pcl::saveBinary(descriptor,file);
     std::ofstream file2(spinvectors_file.c_str());
     pcl::saveBinary(vectors,file2);
-    std::cout.precision(15);
-    std::fixed;
-    for(int i =0 ; i < vectors.rows(); i++){
-        std::cout << vectors(i,0) << ","<< vectors(i,1)<< ","<<vectors(i,2)<<std::endl;
-    }
-    std::cout<<"Wrote: "<<spin_file<<" and "<<spinvectors_file<<std::endl;
+//     std::cout.precision(15);
+//     std::fixed;
+//     for(int i =0 ; i < vectors.rows(); i++){
+//         std::cout << vectors(i,0) << ","<< vectors(i,1)<< ","<<vectors(i,2)<<std::endl;
+//     }
+//     std::cout<<"Wrote: "<<spin_file<<" and "<<spinvectors_file<<std::endl;
     //if reached this point everything is ok
     return true;
 }
