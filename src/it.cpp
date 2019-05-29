@@ -91,12 +91,6 @@ void IT::calculate(){
      //pcl::io::savePCDFile("test_1_pv_calculation_smoothField.pcd",*smoothField);
     
     
-    
-    //TODO this seems unecesary
-    //This is a cleaner tensor/ibs, which does not have those bad prov vectors
-    pcl::PointCloud<pcl::PointXYZ>::Ptr copyIBS(new pcl::PointCloud<pcl::PointXYZ>());
-    pcl::copyPointCloud(*ibsFiltered,*copyIBS);
-
 std::cout << "TIMER: Filtering " << sw.ElapsedMs() << std::endl;
 
     // Print out some data about the tensor and filtering/cleaning
@@ -326,7 +320,6 @@ void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
     std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + this->affordanceName + "_" + this->objectName + "_betterUniform.pcd";
     
     std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
-    //std::string clean_ibs       = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + "_clean.pcd";  // TODO It doesn't have any sense
     std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
     
     pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it.rawProvenanceVectors);
@@ -334,7 +327,6 @@ void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
     pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
     
     pcl::io::savePCDFile( smoother_field.c_str(), *pv_it.smoothedProvenanceVectors);
-    //pcl::io::savePCDFile( clean_ibs, *copyIBS);
     pcl::io::savePCDFile( full_ibs, *ibsFiltered);
     
     std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
