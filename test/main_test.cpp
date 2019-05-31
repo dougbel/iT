@@ -293,13 +293,13 @@ int main(int argc, char *argv[])
 //     std::cout << "You must check by your self output file "<< endl;
     
     
-    std::ifstream ifs_vectors ( "../../test/data/test_3_spin_8_vectors.dat", std::ifstream::in );
+    std::ifstream ifs_vectors ( "../../test/data/test_3_spin_8_vectors.dat" );
     Eigen::MatrixXf spin_vectors_precalculated;
     spin_vectors_precalculated.resize( IT::sampleSize, 3 ); 
     pcl::loadBinary( spin_vectors_precalculated,ifs_vectors );
  
 
-    std::ifstream ifs_descriptor ( "../../test/data/test_3_spin_8_descriptor.dat", std::ifstream::in );
+    std::ifstream ifs_descriptor ( "../../test/data/test_3_spin_8_descriptor.dat");
     Eigen::MatrixXf spin_descriptor_precalculated;
     spin_descriptor_precalculated.resize( IT::sampleSize*8, 3 ); 
     pcl::loadBinary( spin_descriptor_precalculated,ifs_descriptor );
@@ -353,13 +353,13 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////
     
     //INPUTS
-    std::ifstream ifs_agg_vectors ( "../../test/data/test_4_agglomeration_input_vectors.dat", std::ifstream::in );
+    std::ifstream ifs_agg_vectors ( "../../test/data/test_4_agglomeration_input_vectors.dat");
     Eigen::MatrixXf agglomerator_vectors;
     agglomerator_vectors.resize( IT::sampleSize, 3 ); 
     pcl::loadBinary( agglomerator_vectors,ifs_agg_vectors );
 
 
-    std::ifstream ifs_agg_descriptor ( "../../test/data/test_4_agglomeration_input_descriptor.dat", std::ifstream::in );
+    std::ifstream ifs_agg_descriptor ( "../../test/data/test_4_agglomeration_input_descriptor.dat");
     Eigen::MatrixXf agglomerator_descriptor;
     agglomerator_descriptor.resize( IT::sampleSize*8, 3 ); 
     pcl::loadBinary( agglomerator_descriptor,ifs_agg_descriptor );

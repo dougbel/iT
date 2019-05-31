@@ -99,7 +99,7 @@ private:
     
     std::string prepareDirectory();
     
-    void defineReferences( pcl::PointXYZ anchorPoint );
+    void defineReferences( pcl::PointXYZ middlePointObject );
     
     void saveBasicInfo( std::string aff_path );
     

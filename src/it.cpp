@@ -153,12 +153,7 @@ sw.Restart();
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Saving iT    
     
-    // Some file names to save data
-    // Some of the data saved in this file is only kept
-    // to not break previous code but for most recent
-    // version is not used.
-    
-    //Check a path exists
+    //Prepare path
     std::string aff_path = prepareDirectory();
 
 
@@ -168,10 +163,10 @@ sw.Restart();
     // relative to scene. These are still computed and save but no longer
     // used, the new pose is computed using center of bounding boxes.
     std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
+    
     this->defineReferences(middlePointObject);
     
     this->saveBasicInfo(aff_path);
-    
     
     
     // Scene-to-IBS and Scene-to-object are saved in affordance keypoints file
@@ -218,14 +213,15 @@ sw.Restart();
     // It was simpler to compute and store the descriptor for X-orientations than
     // for 1 orientation and then rotate X-times at test time.
     // So we compute this X-orientations and store them for testing.
+    // New representation for agglomerative descriptor in following release, multiple affordaces can be detected
+    // at same time, single affordance representation (this code) is adapated to work with newer code. This "adaptation" is
+    // basically wrap (or format) the descriptor in a highly parallelizble way.
 
     // Spin cloud for weight-sampled
     Spinner_iT spinnerW( new_sampleCloud2, refPointScene, numOrientations);
     spinnerW.calculateSpinings();
     saveSpin(spinnerW, aff_path );
-    // New representation for agglomerative descriptor in following release, multiple affordaces can be detected
-    // at same time, single affordance representation (this code) is adapated to work with newer code. This "adaptation" is
-    // basically wrap (or format) the descriptor in a highly parallelizble way.
+    
     Agglomerator_IT agglomeratorW( spinnerW.vectors, spinnerW.descriptor, mags_c );
     agglomeratorW.compileAgglomeration();
     saveAggloRepresentation(agglomeratorW,aff_path);
@@ -278,7 +274,7 @@ bool IT::saveAggloRepresentation(Agglomerator_IT agglomerator,  std::string path
     pcl::io::savePCDFile(file_name.c_str(),*agglomerator.vectors_data_cloud);
     
     file_name=pathh+this->affordanceName+"_"+this->objectName+"_point_count.dat";
-    std::ofstream ofs (file_name, std::ofstream::out);
+    std::ofstream ofs (file_name);
     pcl::saveBinary(agglomerator.data_individual,ofs);
     
     return true;
@@ -322,12 +318,16 @@ void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
     std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
     std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
     
+    std::string query_object    = aff_path + this->objectName + ".pcd";
+    
     pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it.rawProvenanceVectors);
     pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);   // here reference point are saved, it is better not to save them 
     pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
     
     pcl::io::savePCDFile( smoother_field.c_str(), *pv_it.smoothedProvenanceVectors);
     pcl::io::savePCDFile( full_ibs, *ibsFiltered);
+    
+    pcl::io::savePCDFile( query_object, *this->objectCloud);
     
     std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
     
@@ -383,9 +383,9 @@ void IT::saveBasicInfo( std::string aff_path ){
 }
 
 
-void IT::defineReferences(pcl::PointXYZ anchorPoint){
+void IT::defineReferences(pcl::PointXYZ middlePointObject){
     //TODO resolver como se ajustan estas relaciones, de "PUNTOS DE REFERENCIA", por ahora se calcula como el punto mas cercano al centroide del objeto    
-    this->idxRefScene   = Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, anchorPoint );
+    this->idxRefScene   = Util_iT::indexOfClosestPointInACloud ( sceneCloudFiltered, middlePointObject );
     this->refPointScene = sceneCloudFiltered->at(idxRefScene);
     
     this->idxRefIBS     = Util_iT::indexOfClosestPointInACloud ( ibsFiltered, refPointScene); //"ClosestTensor"
