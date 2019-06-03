@@ -124,11 +124,6 @@ public:
 
 
 
-void printPointWithVector(PointWithVector p){
-    std::cout << std::fixed;
-    std::cout << p.x << "," << p.y << "," << p.z << "," << " normal: " <<p.v1 << ","  << p.v2 << ","  << p.v3 << ","  << std::endl;
-}
-
 
 
 int main(int argc, char *argv[])
@@ -255,14 +250,14 @@ int main(int argc, char *argv[])
     for( int i = 0 ; i < mags_c.size(); i ++){
         if( Util_iT::roundDecimals( mags_c[i] ) != Util_iT::roundDecimals( mags_c_precalculated[i] ) ){
             std::cout << "error weighted" <<endl;
-            printPointWithVector(sampled_by_weights->at(i));
+            Util_iT::printPointWithVector( sampled_by_weights->at(i) );
             std::cout << mags_c[i] << " - " << mags_c_precalculated[i] <<endl;
             return EXIT_FAILURE;
         }
         
         if( Util_iT::roundDecimals( mags_cU[i] ) != Util_iT::roundDecimals( mags_cU_precalculated[i] ) ){
             std::cout << "error uniform" <<endl;
-            printPointWithVector(sampled_uniformly->at(i));
+            Util_iT::printPointWithVector( sampled_uniformly->at(i) );
             std::cout << mags_cU[i] << " - " << mags_cU_precalculated[i] <<endl;
             return EXIT_FAILURE;
         }

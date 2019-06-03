@@ -17,7 +17,7 @@ void Spinner_iT::calculateSpinings(){
     vectors.resize(sample->size(),3);
     
     PointCloud::Ptr xyz_target(new PointCloud);
-    std::cout<<"REf: "<<spiningPoint<<std::endl;
+    //std::cout<<"REf: "<<spiningPoint<<std::endl;
     for(int j=0;j<sample->size();j++)
     {
         PointWithVector aP;

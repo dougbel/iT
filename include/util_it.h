@@ -422,7 +422,18 @@ public:
         return floorf(val * 1000000) / 1000000;
     }
     
-        
+    
+    
+    /**
+     * @brief Print in a legible way values in a PointWithvector 
+     * 
+     * @return void
+     */
+    static void printPointWithVector(PointWithVector p){
+        std::cout << std::fixed;
+        std::cout << p.x << "," << p.y << "," << p.z << "," << " normal: " <<p.v1 << ","  << p.v2 << ","  << p.v3 << ","  << std::endl;
+    }   
+    
 };
 
     

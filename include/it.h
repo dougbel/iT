@@ -38,6 +38,8 @@ public:
     
     void calculate();
     
+    void saveFiles();
+    
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloud;
     pcl::PointCloud<pcl::PointXYZ>::Ptr objectCloud;
     std::string affordanceName;
@@ -56,30 +58,25 @@ public:
     int             idxRefIBS;
     pcl::PointXYZ   refPointObject;     //reference point in OBJECT
     int             idxRefObject;
-    Eigen::Vector3f vectSceneToIBS;
-    Eigen::Vector3f vectSceneToObject;
+    Eigen::Vector3f vectSceneToIBS;     //vector from reference point in scene to IBS
+    Eigen::Vector3f vectSceneToObject;  //vector from reference point in scene to Object
     
-    
-    //sampling realized
-    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloud2;
-    pcl::PointCloud<PointWithVector>::Ptr new_sampleCloudU;
-    
-    //Mags in sampled mapped in 0-1 based on full tensor mags
-    std::vector<float> mags_c;
-    std::vector<float> mags_cU;
-    
-    
+
     //Sample size to take from tensor
     static const int sampleSize = 512;
     static const int numOrientations = 8;
     
 private:
-      
     
-    //SPINNING SECTION
+    ProvenanceVectors_iT* pv_it;
     
-//     Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; //TODO ERASE THEM! this variables are used to calculate the spin of iT
-//     Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO ERASE THEM! this variables are used to calculate the spin of iT
+    Sampler_iT* samplerW;
+    Spinner_iT* spinnerW;
+    Agglomerator_IT* agglomeratorW;
+    
+    Sampler_iT* samplerU;
+    Spinner_iT* spinnerU;
+    Agglomerator_IT* agglomeratorU;
     
     
     /**
@@ -92,30 +89,19 @@ private:
     */
     std::vector<float> getSamplingProbabilities(pcl::PointCloud<pcl::PointNormal>::Ptr clout_in, float minV, float maxV);
     
-    
-    bool saveAggloRepresentation(Agglomerator_IT agglomerator, std::string pathh,bool uniform=false);
-    
-    bool saveSpin(Spinner_iT spinner, std::string pathh, bool uniform=false);
-    
     std::string prepareDirectory();
     
     void defineReferences( pcl::PointXYZ middlePointObject );
     
+    bool saveAggloRepresentation(Agglomerator_IT* agglomerator, std::string pathh,bool uniform=false);
+    
+    bool saveSpin(Spinner_iT* spinner, std::string pathh, bool uniform=false);    
+    
     void saveBasicInfo( std::string aff_path );
     
-    void saveProvenanceIBS( std::string aff_path, ProvenanceVectors_iT pv_it );
+    void saveProvenanceIBS( std::string aff_path);
     
-    //void getSpinMatrix(pcl::PointCloud<PointWithVector>::Ptr sample, int orientations, pcl::PointCloud<pcl::PointXYZ>::Ptr full);
-    
-    //void rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,bool origin);
-    
-    //void rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_out, float angle, char axis,pcl::PointXYZ pivot);
-    
-    //void translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in,  pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation);
-     
-    //void translateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr in,  pcl::PointCloud<pcl::PointXYZ>::Ptr out, pcl::PointXYZ translation, pcl::PointXYZ reference);
-    
-    //std::vector<int> savingInfoFileName(std:string  ); //TODO
+
     
 
 };

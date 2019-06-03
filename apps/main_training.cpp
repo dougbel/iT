@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
    IT itcalculator( cloud_scene, cloud_object, "Place", "bowl");
     
    itcalculator.calculate();
+   itcalculator.saveFiles();
    /*  
    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_ibs_filtered (new pcl::PointCloud<pcl::PointXYZ>);
    pcl::io::loadPCDFile("./tmp/ibs_clouds_prefiltered_filtered.pcd", *cloud_ibs_filtered);
@@ -46,3 +47,4 @@ int main(int argc, char *argv[])
    
     return EXIT_SUCCESS;
 }
+

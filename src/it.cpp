@@ -44,26 +44,23 @@ void IT::calculate(){
     sceneCloudFiltered = Util::sphereExtraction(sceneCloud, middlePointObject,radio);
 
     
-    //pcl::io::savePCDFile("scene_cloud_filtered.pcd",*sceneCloudFiltered);
-    
  StopWatch sw;
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // calculate the Interaction Bisector Surface (IBS)
-//     IBS ibs_calculator(sceneCloudFiltered,objectCloud);
+    IBS ibs_calculator(sceneCloudFiltered,objectCloud);
 
-// sw.Restart();
-//     ibs_calculator.calculate();
-// std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
-//     
-//     
-// sw.Restart();
-//     //as IBS extend to infinity, filter IBS
-//     ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
+sw.Restart();
+    ibs_calculator.calculate();
+std::cout << "TIMER: ISB calculation " << sw.ElapsedMs() << std::endl;
     
     
-//     //TODO erase this, it is only for developing porpouses
+sw.Restart();
+    //as IBS extend to infinity, filter IBS
+    ibsFiltered = Util::sphereExtraction(ibs_calculator.getIBS(), middlePointObject,radio);
     
-    pcl::io::loadPCDFile("../../test/data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    
+     //This is only for developing porpouses    
+    //pcl::io::loadPCDFile("../../test/data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Searching nearest neighbours (from IBS to ) and calculating smoot provenance vector
@@ -75,17 +72,17 @@ void IT::calculate(){
     float maxV, minV, maxS, minS;
     float  sum, sumSmooth;
     
-    ProvenanceVectors_iT pv_it(ibsFiltered, sceneCloudFiltered);
-    pv_it.calculateProvenanceVectors(5);
+    pv_it = new ProvenanceVectors_iT(ibsFiltered, sceneCloudFiltered);
+    pv_it->calculateProvenanceVectors(5);
     
-    field       = pv_it.rawProvenanceVectors;
-    smoothField = pv_it.smoothedProvenanceVectors;
-    maxV        = pv_it.maxV;
-    minV        = pv_it.minV;
-    maxS        = pv_it.maxS;
-    minS        = pv_it.minS;
-    sum         = pv_it.sum;
-    sumSmooth   = pv_it.sumSmooth;
+    field       = pv_it->rawProvenanceVectors;
+    smoothField = pv_it->smoothedProvenanceVectors;
+    maxV        = pv_it->maxV;
+    minV        = pv_it->minV;
+    maxS        = pv_it->maxS;
+    minS        = pv_it->minS;
+    sum         = pv_it->sum;
+    sumSmooth   = pv_it->sumSmooth;
     
      //pcl::io::savePCDFile("test_1_pv_calculation_field.pcd",*field);
      //pcl::io::savePCDFile("test_1_pv_calculation_smoothField.pcd",*smoothField);
@@ -94,10 +91,9 @@ void IT::calculate(){
 std::cout << "TIMER: Filtering " << sw.ElapsedMs() << std::endl;
 
     // Print out some data about the tensor and filtering/cleaning
-    std::cout<< pv_it <<std::endl;
+    std::cout<< *pv_it <<std::endl;
     
     
-sw.Restart();    
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // it is possible that this section is useless
     
@@ -133,43 +129,161 @@ sw.Restart();
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Sampling provenance vector to construct the descriptor
-  
-    Sampler_iT* samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
+
+sw.Restart();    
+
+    samplerW = new SamplerWeighted_iT(field, nMin, nMax, sampleSize);
     samplerW->calculateSample();
     
-    new_sampleCloud2 = samplerW->sample;
+    //new_sampleCloud2 = samplerW->sample;
     
     
-    Sampler_iT* samplerU = new SamplerUniform_iT(field, sampleSize);
+    samplerU = new SamplerUniform_iT(field, sampleSize);
     samplerU->calculateSample();
     
-    new_sampleCloudU = samplerU->sample;
+    //new_sampleCloudU = samplerU->sample;
     
     
-    //Save mags in sampled mapped in 0-1 based on full tensor mags
-    mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *new_sampleCloud2, nMin, nMax, 1, 0 );
-    mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *new_sampleCloudU, nMin, nMax, 1, 0 );
+   
+    
+
+std::cout << "TIMER: Sampling " << sw.ElapsedMs() << std::endl;
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Saving iT    
-    
-    //Prepare path
-    std::string aff_path = prepareDirectory();
-
-
+    // Spinning and agglomerating
     // Some data for info file
     // Closest point in Tensor to scene and in object to scene
     // were used previously to estimate the pose of Tensor/Object
     // relative to scene. These are still computed and save but no longer
     // used, the new pose is computed using center of bounding boxes.
-    std::cout<<"Getting closest point in Tensor to scene"<<std::endl;
+    
+sw.Restart();    
     
     this->defineReferences(middlePointObject);
     
+    // By default compute spin cloud for 8 orientations
+    // New representation for agglomerative descriptor in following release, multiple affordaces can be detected
+    // at same time, single affordance representation (this code) is adapated to work with newer code. This "adaptation" is
+    // basically wrap (or format) the descriptor in a highly parallelizble way.
+
+    // Spin cloud for weight-sampled
+    spinnerW  = new Spinner_iT( samplerW->sample, refPointScene, numOrientations);
+    spinnerW->calculateSpinings();
+    
+    //Save mags in sampled mapped in 0-1 based on full tensor mags
+    std::vector<float> mags_c;
+    mags_c  = Util_iT::calculatedMappedMagnitudesToVector( *samplerW->sample, nMin, nMax, 1, 0 );
+    
+    agglomeratorW = new Agglomerator_IT( spinnerW->vectors, spinnerW->descriptor, mags_c );
+    agglomeratorW->compileAgglomeration();
+    
+    
+    
+    // Spin cloud for uniform sampled
+    spinnerU = new Spinner_iT( samplerU->sample, refPointScene, numOrientations);
+    spinnerU->calculateSpinings();
+    
+    //Mags in sampled mapped in 0-1 based on full tensor mags
+    std::vector<float> mags_cU; 
+    mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *samplerU->sample, nMin, nMax, 1, 0 );
+    
+    agglomeratorU = new Agglomerator_IT( spinnerU->vectors, spinnerU->descriptor, mags_cU );
+    agglomeratorU->compileAgglomeration();
+    
+    
+std::cout << "TIMER: Spinning and agglomering " << sw.ElapsedMs() << std::endl;
+    
+    
+}
+
+void IT::saveFiles()
+{
+    //Prepare path
+    std::string aff_path = prepareDirectory();
+
     this->saveBasicInfo(aff_path);
     
+    this->saveProvenanceIBS(aff_path);
     
-    // Scene-to-IBS and Scene-to-object are saved in affordance keypoints file
+    this->saveSpin(spinnerW, aff_path );
+    this->saveAggloRepresentation(agglomeratorW,aff_path);
+    
+    this->saveSpin(spinnerU,aff_path,true);
+    this->saveAggloRepresentation(agglomeratorU, aff_path,true);
+
+}
+
+
+
+bool IT::saveAggloRepresentation(Agglomerator_IT* agglomerator,  std::string pathh, bool uniform)
+{
+
+   
+    std::cout<<"Point counts "<<agglomerator->data_individual<<std::endl;
+    std::string base_name;
+    
+    // Save everything with a correct name
+    // if uniform sampling or different
+    if(uniform)
+        base_name = pathh + "UNew_"+ this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator->n_orientations);
+    else
+        base_name = pathh + "New_" + this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator->n_orientations);
+    
+    std::string file_name=base_name+"_members.pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->aux_cloud);
+    
+    file_name=base_name+"_extra.pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->useful_cloud);
+    
+    file_name=base_name+".pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->better_approx);
+    
+    file_name=base_name+"_points.pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->bare_points);
+    
+    file_name=base_name+"_vectors.pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->vector_ids_agglomerative);
+    
+    file_name=base_name+"_vdata.pcd";
+    pcl::io::savePCDFile(file_name.c_str(),*agglomerator->vectors_data_cloud);
+    
+    file_name=pathh+this->affordanceName+"_"+this->objectName+"_point_count.dat";
+    std::ofstream ofs (file_name);
+    pcl::saveBinary(agglomerator->data_individual,ofs);
+    
+    return true;
+}
+
+
+bool IT::saveSpin(Spinner_iT* spinner, std::string pathh, bool uniform){
+    
+    std::string spin_file;
+    std::string spinvectors_file;
+    
+    if(uniform)
+    {
+        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spinU_" + std::to_string(numOrientations) + ".dat";
+        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinUvectors_" + std::to_string(numOrientations) + ".dat";
+    }
+    else
+    {
+        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spin_"+ std::to_string(numOrientations)+".dat";
+        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinvectors_"+ std::to_string(numOrientations)+".dat";
+    }
+    
+    std::ofstream file(spin_file.c_str());
+    pcl::saveBinary(spinner->descriptor,file);
+    
+    std::ofstream file2(spinvectors_file.c_str());
+    pcl::saveBinary(spinner->vectors,file2);
+    
+    return true;
+}
+
+
+void IT::saveProvenanceIBS(std::string aff_path)
+{
+     // Scene-to-IBS and Scene-to-object are saved in affordance keypoints file
     // As commented earlier it was used to align pointclouds
     // at test time. No longer used but still kept in files.
     PointWithVector secondtolast;
@@ -190,125 +304,11 @@ sw.Restart();
     last.v3 = 0;
 
     
-    new_sampleCloud2->push_back(secondtolast);
-    new_sampleCloud2->push_back(last);
+    samplerW->sample->push_back(secondtolast);
+    samplerW->sample->push_back(last);
     
-    new_sampleCloudU->push_back(secondtolast);
-    new_sampleCloudU->push_back(last);
-    
-    
-    saveProvenanceIBS(aff_path, pv_it);
-    
-    
-    //TODO I add this point but inmediatly erase it because I erased their necesity in the "SPIN CALCULATION"
-    new_sampleCloud2->erase( new_sampleCloud2->end()-1 );
-    new_sampleCloud2->erase( new_sampleCloud2->end()-1 );
-    new_sampleCloudU->erase( new_sampleCloudU->end()-1 );
-    new_sampleCloudU->erase( new_sampleCloudU->end()-1 );
-    
- 
-    // By default compute spin cloud for 8 orientations
-    // Can be changed and passed as parameter
-    // int n_orientations=8;
-    // It was simpler to compute and store the descriptor for X-orientations than
-    // for 1 orientation and then rotate X-times at test time.
-    // So we compute this X-orientations and store them for testing.
-    // New representation for agglomerative descriptor in following release, multiple affordaces can be detected
-    // at same time, single affordance representation (this code) is adapated to work with newer code. This "adaptation" is
-    // basically wrap (or format) the descriptor in a highly parallelizble way.
-
-    // Spin cloud for weight-sampled
-    Spinner_iT spinnerW( new_sampleCloud2, refPointScene, numOrientations);
-    spinnerW.calculateSpinings();
-    saveSpin(spinnerW, aff_path );
-    
-    Agglomerator_IT agglomeratorW( spinnerW.vectors, spinnerW.descriptor, mags_c );
-    agglomeratorW.compileAgglomeration();
-    saveAggloRepresentation(agglomeratorW,aff_path);
-    
-    
-    // Spin cloud for uniform sampled
-    Spinner_iT spinnerU( new_sampleCloudU, refPointScene, numOrientations);
-    spinnerU.calculateSpinings();
-    saveSpin(spinnerU,aff_path,true);
-    
-    Agglomerator_IT agglomeratorU( spinnerU.vectors, spinnerU.descriptor, mags_c );
-    agglomeratorU.compileAgglomeration();
-    saveAggloRepresentation(agglomeratorU, aff_path,true);
-    
-    
-}
-
-
-
-bool IT::saveAggloRepresentation(Agglomerator_IT agglomerator,  std::string pathh, bool uniform)
-{
-
-   
-    std::cout<<"Point counts "<<agglomerator.data_individual<<std::endl;
-    std::string base_name;
-    
-    // Save everything with a correct name
-    // if uniform sampling or different
-    if(uniform)
-        base_name = pathh + "UNew_"+ this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator.n_orientations);
-    else
-        base_name = pathh + "New_" + this->affordanceName + "_" + this->objectName + "_descriptor_" + std::to_string(agglomerator.n_orientations);
-    
-    std::string file_name=base_name+"_members.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.aux_cloud);
-    
-    file_name=base_name+"_extra.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.useful_cloud);
-    
-    file_name=base_name+".pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.better_approx);
-    
-    file_name=base_name+"_points.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.bare_points);
-    
-    file_name=base_name+"_vectors.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.vector_ids_agglomerative);
-    
-    file_name=base_name+"_vdata.pcd";
-    pcl::io::savePCDFile(file_name.c_str(),*agglomerator.vectors_data_cloud);
-    
-    file_name=pathh+this->affordanceName+"_"+this->objectName+"_point_count.dat";
-    std::ofstream ofs (file_name);
-    pcl::saveBinary(agglomerator.data_individual,ofs);
-    
-    return true;
-}
-
-
-bool IT::saveSpin(Spinner_iT spinner, std::string pathh, bool uniform){
-    
-    std::string spin_file;
-    std::string spinvectors_file;
-    
-    if(uniform)
-    {
-        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spinU_" + std::to_string(numOrientations) + ".dat";
-        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinUvectors_" + std::to_string(numOrientations) + ".dat";
-    }
-    else
-    {
-        spin_file        = pathh + this->affordanceName + "_" + this->objectName + "_spin_"+ std::to_string(numOrientations)+".dat";
-        spinvectors_file = pathh + this->affordanceName + "_" + this->objectName + "_spinvectors_"+ std::to_string(numOrientations)+".dat";
-    }
-    
-    std::ofstream file(spin_file.c_str());
-    pcl::saveBinary(spinner.descriptor,file);
-    
-    std::ofstream file2(spinvectors_file.c_str());
-    pcl::saveBinary(spinner.vectors,file2);
-    
-    return true;
-}
-
-
-void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
-{
+    samplerU->sample->push_back(secondtolast);
+    samplerU->sample->push_back(last);
     
      // Save everything
     std::string new_ibs_field   = aff_path + this->affordanceName + "_" + this->objectName + "_field.pcd";
@@ -320,17 +320,24 @@ void IT::saveProvenanceIBS(std::string aff_path, ProvenanceVectors_iT pv_it)
     
     std::string query_object    = aff_path + this->objectName + ".pcd";
     
-    pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it.rawProvenanceVectors);
-    pcl::io::savePCDFile( new_ibs_sample.c_str(), *new_sampleCloud2);   // here reference point are saved, it is better not to save them 
-    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *new_sampleCloudU);  // I erase such necesity in the spin creations
     
-    pcl::io::savePCDFile( smoother_field.c_str(), *pv_it.smoothedProvenanceVectors);
+    pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it->rawProvenanceVectors);
+    pcl::io::savePCDFile( new_ibs_sample.c_str(), *samplerW->sample);   // here reference point are saved, it is better not to save them 
+    pcl::io::savePCDFile( new_ibs_sampleU.c_str(), *samplerU->sample);  // I erase such necesity in the spin creations
+    
+    pcl::io::savePCDFile( smoother_field.c_str(), *pv_it->smoothedProvenanceVectors);
     pcl::io::savePCDFile( full_ibs, *ibsFiltered);
     
     pcl::io::savePCDFile( query_object, *this->objectCloud);
     
-    std::cout<<"Done and saved as "<<new_ibs_field<<std::endl;
     
+    //TODO I add this point but inmediatly erase it because I erased their necesity in the "SPIN CALCULATION"
+    samplerW->sample->erase( samplerW->sample->end()-1 );
+    samplerW->sample->erase( samplerW->sample->end()-1 );
+    samplerU->sample->erase( samplerU->sample->end()-1 );
+    samplerU->sample->erase( samplerU->sample->end()-1 );
+    
+
 }
 
 
