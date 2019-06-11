@@ -11,12 +11,12 @@ Spinner_iT::Spinner_iT(pcl::PointCloud<PointWithVector>::Ptr sample, pcl::PointX
 
 void Spinner_iT::calculateSpinings(){
     
-    PointCloudT::Ptr relativePoints(new PointCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr relativePoints(new pcl::PointCloud<pcl::PointXYZ>);
     
     descriptor.resize(sample->size()*orientations,3);
     vectors.resize(sample->size(),3);
     
-    PointCloud::Ptr xyz_target(new PointCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_target(new pcl::PointCloud<pcl::PointXYZ>);
     //std::cout<<"REf: "<<spiningPoint<<std::endl;
     for(int j=0;j<sample->size();j++)
     {
@@ -33,9 +33,9 @@ void Spinner_iT::calculateSpinings(){
         //xyz_target->push_back(pcl::PointXYZ(aP.x,aP.y,aP.z));
     }
 
-    PointCloud::Ptr spinCloud(new PointCloud);
-    PointCloud::Ptr relative_spin(new PointCloud);
-    PointCloud::Ptr xyz_2(new PointCloud);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr spinCloud(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr relative_spin(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr xyz_2(new pcl::PointCloud<pcl::PointXYZ>);
     
     pcl::copyPointCloud(*sample,*xyz_target);
     pcl::copyPointCloud(*sample,*spinCloud);
@@ -133,7 +133,7 @@ void Spinner_iT::rotateCloud( pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in,  pcl
     //newPivot.y=cloud_out->at(pivot_id).y;
     //newPivot.z=cloud_out->at(pivot_id).z;
     translateCloud(cloud_out,cloud_out,pivot,newPivot);
-    PointCloud::iterator iter=cloud_out->end();
+    pcl::PointCloud<pcl::PointXYZ>::iterator iter=cloud_out->end();
     --iter;
     cloud_out->erase(iter);
     
