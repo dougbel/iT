@@ -27,6 +27,7 @@
 #include "agglomerator_it.h"
 #include "StopWatch.h"
 
+#include <string>
 
 /**
  * @todo write docs
@@ -35,6 +36,10 @@ class IT
 {
 public:
     IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ>::Ptr object, std::string name_affordance, std::string name_object);
+    
+    static void loadFiles(std::string affordance_name, std::string object_name);
+    
+    static std::string getDirectory(std::string affordance_name, std::string object_name);
     
     void calculate();
     
@@ -50,6 +55,16 @@ public:
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered;
     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered;
     
+    
+    //sample
+    pcl::PointCloud<PointWithVector>::Ptr sampleW;
+    pcl::PointCloud<PointWithVector>::Ptr sampleU;
+    
+    //calculations spinned
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> spinnedDescriptorW;
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> spinnedVectorsW;
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> spinnedDescriptorU;
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> spinnedVectorsU;
     
     //reference points
     pcl::PointXYZ   refPointScene;      // reference point in SCENE
@@ -70,12 +85,8 @@ private:
     
     ProvenanceVectors_iT* pv_it;
     
-    Sampler_iT* samplerW;
-    Spinner_iT* spinnerW;
     Agglomerator_IT* agglomeratorW;
     
-    Sampler_iT* samplerU;
-    Spinner_iT* spinnerU;
     Agglomerator_IT* agglomeratorU;
     
     
@@ -95,9 +106,11 @@ private:
     
     bool saveAggloRepresentation(Agglomerator_IT* agglomerator, std::string pathh,bool uniform=false);
     
-    bool saveSpin(Spinner_iT* spinner, std::string pathh, bool uniform=false);    
+    bool saveSpin( std::string pathh, bool uniform=false);    
     
     void saveBasicInfo( std::string aff_path );
+    
+    void saveSceneAndQueryObjects(std::string aff_path );
     
     void saveProvenanceIBS( std::string aff_path);
     

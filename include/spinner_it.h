@@ -23,8 +23,8 @@ public:
     //  Matrix<typename Scalar, int RowsAtCompileTime, int ColsAtCompileTime>
     // Eigen::RowMajor is the storage order   ===>> Normaly Eigen saves them colum by colum
     // These are matrixs with n number of rows, 3 colums that are stored in memory row by row
-    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; //TODO this variables are used to calculate the spin of iT
-    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    //TODO this variables are used to calculate the spin of iT
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> descriptor; 
+    Eigen::Matrix <float, Eigen::Dynamic, 3, Eigen::RowMajor> vectors;    
     
     /**
      * @todo write docs

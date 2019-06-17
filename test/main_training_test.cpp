@@ -296,7 +296,7 @@ int main(int argc, char *argv[])
 
     std::ifstream ifs_descriptor ( "../../test/data/test_3_spin_8_descriptor.dat");
     Eigen::MatrixXf spin_descriptor_precalculated;
-    spin_descriptor_precalculated.resize( IT::sampleSize*8, 3 ); 
+    spin_descriptor_precalculated.resize( IT::sampleSize*IT::numOrientations, 3 ); 
     pcl::loadBinary( spin_descriptor_precalculated,ifs_descriptor );
     
     
