@@ -20,6 +20,8 @@
 
 #include <Eigen/Dense>
 
+#include <boost/tokenizer.hpp>
+
 #include <math.h>
 #include <iostream>
 #include <fstream>
@@ -433,6 +435,29 @@ public:
         std::cout << std::fixed;
         std::cout << p.x << "," << p.y << "," << p.z << "," << " normal: " <<p.v1 << ","  << p.v2 << ","  << p.v3 << ","  << std::endl;
     }   
+    
+    
+    /**
+     * @brief Generates a pcl::PointXYZ from a string comma-separated as "0.951572,0.556679,1.17748"
+     *
+     * @return The generated pcl::PointXYZ 
+     */
+    static pcl::PointXYZ stringToPoint(std::string str){
+        
+        pcl::PointXYZ output;
+        
+        boost::char_separator<char> sep{","};
+        boost::tokenizer<boost::char_separator<char>> tokens{str, sep} ;
+        boost::tokenizer<boost::char_separator<char>>::iterator tok_iter = tokens.begin();
+        output.x = std::stof(*tok_iter); 
+        tok_iter++;
+        output.y = std::stof(*tok_iter);
+        tok_iter++;
+        output.z = std::stof(*tok_iter);
+        
+        return output;
+    }
+
     
 };
 

@@ -12,8 +12,11 @@
 #include <pcl/filters/extract_indices.h>
 
 #include <boost/filesystem.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #include <limits>
+#include <sstream>
 
 
 
@@ -37,7 +40,7 @@ class IT
 public:
     IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ>::Ptr object, std::string name_affordance, std::string name_object);
     
-    static void loadFiles(std::string affordance_name, std::string object_name);
+    static IT loadFiles(std::string affordance_name, std::string object_name);
     
     static std::string getDirectory(std::string affordance_name, std::string object_name);
     

@@ -70,3 +70,60 @@ void Agglomerator_IT::compileAgglomeration()
         vectors_data_cloud->at(i).z = 0;
     }
 }
+
+Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize)
+{
+    
+    Agglomerator_IT agglomeratorU = Agglomerator_IT();
+    
+    agglomeratorU.aux_cloud    = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    agglomeratorU.useful_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    agglomeratorU.better_approx= pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    agglomeratorU.bare_points  = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    agglomeratorU.vector_ids_agglomerative = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    agglomeratorU.vectors_data_cloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+    
+    
+    
+    std::string file_nameU;
+    std::string base_nameU;
+   
+    base_nameU = path + "/" + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_8";   //TODO  it is necesary avoid the num of Orientations
+        
+        
+    file_nameU=base_nameU+"_members.pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(),*agglomeratorU.aux_cloud);
+    
+    file_nameU=base_nameU+"_extra.pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(),*agglomeratorU.useful_cloud);
+    
+    file_nameU=base_nameU+".pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(),*agglomeratorU.better_approx);
+    
+    file_nameU=base_nameU+"_points.pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(),*agglomeratorU.bare_points);
+    
+    file_nameU=base_nameU+"_vectors.pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(),*agglomeratorU.vector_ids_agglomerative);
+   
+    file_nameU = base_nameU + "_vdata.pcd";
+    pcl::io::loadPCDFile(file_nameU.c_str(), *agglomeratorU.vectors_data_cloud);
+    
+    agglomeratorU.sampleSize     = sampleSize;
+    agglomeratorU.n_orientations = agglomeratorU.vectors_data_cloud->size()/agglomeratorU.sampleSize;
+
+    // point counts per affordance per orientation
+    // Mostly useful for normalization in multiple affordance prediction
+    // for single affordance case: 1x8 matrix with sampleSize in each element
+    agglomeratorU.data_individual =  Eigen::MatrixXf(1, agglomeratorU.n_orientations);
+    agglomeratorU.data_individual << Eigen::MatrixXf::Zero(1, agglomeratorU.n_orientations);
+    
+    
+    file_nameU = path + affordance_name + "_" + object_name + "_point_count.dat";
+    std::ifstream ifs_agglomeratorU ( file_nameU );
+    pcl::loadBinary( agglomeratorU.data_individual, ifs_agglomeratorU );
+    
+    return agglomeratorU;
+    
+}
+

@@ -10,6 +10,9 @@ IT::IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ
     this->sceneCloudFiltered.reset(new pcl::PointCloud<pcl::PointXYZ>);
     this->ibsFiltered.reset(new pcl::PointCloud<pcl::PointXYZ>);
     
+    this->sampleW.reset(new pcl::PointCloud<PointWithVector>);
+    this->sampleU.reset(new pcl::PointCloud<PointWithVector>);
+    
      // to compute voronoi diagram over all points
     this->sceneCloud   = scene;
     this->objectCloud  = object;
@@ -415,6 +418,43 @@ void IT::saveBasicInfo( std::string aff_path ){
     }
     output_file.close();
     
+    boost::property_tree::ptree root;
+    boost::property_tree::write_json(std::cout, root);
+    
+    std::ostringstream string_stream;
+    
+    root.put("Scene name", "not implemented");  //TODO no scene name 
+    root.put("Object name", this->objectName);
+    
+    boost::property_tree::ptree refIBS;
+    refIBS.put("idxRefIBS", idxRefIBS);
+    string_stream << refPointIBS.x<<","<<refPointIBS.y<<","<<refPointIBS.z;
+    refIBS.put("refPointIBS", string_stream.str());
+    root.add_child("Reference", refIBS);
+    
+    string_stream.str("");
+    boost::property_tree::ptree scenePoint;
+    scenePoint.put("idxScenePoint", idxRefScene);
+    string_stream << refPointScene.x << "," << refPointScene.y<<","<<refPointScene.z;
+    scenePoint.put("refPointScene", string_stream.str());
+    root.add_child("ScenePoint", scenePoint);
+    
+    string_stream.str("");
+    boost::property_tree::ptree ibsPointVector;
+    ibsPointVector.put("idxRefIBS", idxRefIBS);
+    string_stream << vectSceneToIBS[0] << "," << vectSceneToIBS[1]<<","<<vectSceneToIBS[2];
+    ibsPointVector.put("vectSceneToIBS", string_stream.str());
+    root.add_child("IbsPointVector", ibsPointVector);
+    
+    string_stream.str("");
+    boost::property_tree::ptree objPointVector;
+    objPointVector.put("idxRefObject", idxRefObject);
+    string_stream << vectSceneToObject[0] << "," << vectSceneToObject[1]<<","<<vectSceneToObject[2];
+    objPointVector.put("vectSceneToObject", string_stream.str());
+    root.add_child("ObjPointVector", objPointVector);
+    
+    std::string json_file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".json";
+    boost::property_tree::write_json( json_file_name, root );
 }
 
 
@@ -477,7 +517,7 @@ std::string IT::getDirectory(std::string affordance_name, std::string object_nam
 
 /************************ FILE LOADER************************/
 
-void IT::loadFiles(std::string affordance_name, std::string object_name)
+IT IT::loadFiles(std::string affordance_name, std::string object_name)
 {
 
     std::string aff_path = IT::getDirectory(affordance_name, object_name);
@@ -500,7 +540,7 @@ void IT::loadFiles(std::string affordance_name, std::string object_name)
     
     
      //load scene cloud filtered point 
-    std::string scene_cloud_filtered_filename = aff_path + affordance_name + "_" + object_name + "_object.pcd";
+    std::string scene_cloud_filtered_filename = aff_path + affordance_name + "_" + object_name + "_scene_filtered.pcd";
     pcl::io::loadPCDFile(scene_cloud_filtered_filename, *itcalculator.sceneCloudFiltered);
     
     //load ibs_filtered
@@ -535,25 +575,30 @@ void IT::loadFiles(std::string affordance_name, std::string object_name)
     itcalculator.vectSceneToObject[1] = last.y;
     itcalculator.vectSceneToObject[2] = last.z;
     itcalculator.idxRefObject = last.v1;
+    itcalculator.refPointObject= itcalculator.objectCloud->at( itcalculator.idxRefObject );
        
     itcalculator.sampleW->erase( itcalculator.sampleW->end()-1 );
     itcalculator.sampleU->erase( itcalculator.sampleU->end()-1 );
     
-    PointWithVector secondtolast;
+    PointWithVector secondtolast = itcalculator.sampleU->back();
     itcalculator.vectSceneToIBS[0] = secondtolast.x;
     itcalculator.vectSceneToIBS[1] = secondtolast.y;
     itcalculator.vectSceneToIBS[2] = secondtolast.z;
     itcalculator.idxRefIBS = secondtolast.v1;
+    itcalculator.refPointIBS   = itcalculator.ibsFiltered->at( itcalculator.idxRefIBS );
   
     itcalculator.sampleW->erase( itcalculator.sampleW->end()-1 );
     itcalculator.sampleU->erase( itcalculator.sampleU->end()-1 );
 
+
+    // Create a root
+    boost::property_tree::ptree root;
+    // Load the json file in this ptree
+    std::string json_file_name= aff_path + "ibs_full_" + affordance_name + "_" + object_name + ".json";
+    boost::property_tree::read_json(json_file_name, root);
+    itcalculator.idxRefScene =  root.get<int>("ScenePoint.idxScenePoint");
+    itcalculator.refPointScene = Util_iT::stringToPoint( root.get<std::string>("ScenePoint.refPointScene") );
     
-//     itcalculator.idxRefScene   =                                             //TODO    Esto se lee del archivo  txt con la información básica///////////////////////////////////////////////////////////////
-//     itcalculator.refPointScene = sceneCloudFiltered->at(idxRefScene);
-    
-    itcalculator.refPointIBS   = itcalculator.ibsFiltered->at( itcalculator.idxRefIBS );
-    itcalculator.refPointObject= itcalculator.objectCloud->at( itcalculator.idxRefObject );
     
     
     //load spinners
@@ -588,9 +633,9 @@ void IT::loadFiles(std::string affordance_name, std::string object_name)
     base_nameU = aff_path + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(IT::numOrientations);
         
     file_nameU = base_nameU + "_vdata.pcd";
-    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudU;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudU( new pcl::PointCloud<pcl::PointXYZ>);
     pcl::io::loadPCDFile(file_nameU.c_str(), *vectors_data_cloudU);
-    for(int i=0;i<itcalculator.spinnedVectorsU.rows();i++)
+    for( int i = 0 ; i < IT::sampleSize ; i++)
         magsU.push_back( vectors_data_cloudU->at(i).y );
     
     
@@ -627,9 +672,9 @@ void IT::loadFiles(std::string affordance_name, std::string object_name)
     base_nameW = aff_path + "New_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(IT::numOrientations);
         
     file_nameW = base_nameW + "_vdata.pcd";
-    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudW;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudW(new pcl::PointCloud<pcl::PointXYZ>);;
     pcl::io::loadPCDFile(file_nameW.c_str(), *vectors_data_cloudW);
-    for(int i=0;i<itcalculator.spinnedVectorsW.rows();i++)
+    for( int i = 0 ; i < IT::sampleSize ; i++)
         magsW.push_back( vectors_data_cloudW->at(i).y );
     
     
@@ -658,5 +703,10 @@ void IT::loadFiles(std::string affordance_name, std::string object_name)
     pcl::loadBinary( agglomeratorW->data_individual, ifs_agglomeratorW );
     
     //TODO it is necessary save number of orientations and sample size in an independet way
+    
+    itcalculator.agglomeratorU = agglomeratorU;
+    itcalculator.agglomeratorW =agglomeratorW;
+    
+    return itcalculator;
 }
 

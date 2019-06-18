@@ -32,7 +32,8 @@ set(IT_SOURCES ${IBS_SOURCES}  ${IT_SOURCES_DIR}/it.cpp
                 ${IT_SOURCES_DIR}/sampleruniform_it.cpp 
                 ${IT_SOURCES_DIR}/samplerweighted_it.cpp
                 ${IT_SOURCES_DIR}/spinner_it.cpp
-                ${IT_SOURCES_DIR}/agglomerator_it.cpp)#TODO Agregar los cpp que realizan el calculo del interaction tensor
+                ${IT_SOURCES_DIR}/agglomerator_it.cpp
+                ${IT_SOURCES_DIR}/densifier.cpp)#TODO Agregar los cpp que realizan el calculo del interaction tensor
 
 
 #message(STATUS "CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}")
