@@ -63,7 +63,7 @@ sw.Restart();
     
     
      //This is only for developing porpouses    
-    //pcl::io::loadPCDFile("../../test/data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    //pcl::io::loadPCDFile("../../test/calculation_data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Searching nearest neighbours (from IBS to ) and calculating smoot provenance vector

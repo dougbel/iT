@@ -134,18 +134,18 @@ int main(int argc, char *argv[])
 
     // extract volume of interest from the scene
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/scene_cloud_filtered.pcd", *sceneCloudFiltered);
+    pcl::io::loadPCDFile("../../test/calculation_data/cene_cloud_filtered.pcd", *sceneCloudFiltered);
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
+    pcl::io::loadPCDFile("../../test/calculation_data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
     
 
     
     pcl::PointCloud<pcl::PointNormal>::Ptr raw_pv_precalculated_original_it(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::io::loadPCDFile("../../test/data/test_1_pv_calculation_field_original_it.pcd", *raw_pv_precalculated_original_it);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_1_pv_calculation_field_original_it.pcd", *raw_pv_precalculated_original_it);
     
     pcl::PointCloud<pcl::PointNormal>::Ptr smoothed_pv_precalculated_original_it(new pcl::PointCloud<pcl::PointNormal>);
-    pcl::io::loadPCDFile("../../test/data/test_1_pv_calculation_smoothField_original_it.pcd", *smoothed_pv_precalculated_original_it);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_1_pv_calculation_smoothField_original_it.pcd", *smoothed_pv_precalculated_original_it);
     
     
     
@@ -223,17 +223,17 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////
     // extract volume of interest from the scene
     pcl::PointCloud<PointWithVector>::Ptr sampled_by_weights(new pcl::PointCloud<PointWithVector>);
-    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_with_weights.pcd", *sampled_by_weights);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_2_field_sample_with_weights.pcd", *sampled_by_weights);
     
     pcl::PointCloud<PointWithVector>::Ptr sampled_uniformly(new pcl::PointCloud<PointWithVector>);
-    pcl::io::loadPCDFile("../../test/data/test_2_field_sample_uniformly.pcd", *sampled_uniformly);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_2_field_sample_uniformly.pcd", *sampled_uniformly);
     
     std::vector<float> mags_c_precalculated;
     std::vector<float> mags_cU_precalculated;
     
-    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_c.txt" );
+    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_c.txt" );
    
-    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/data/test_2_mags_cU.txt" );
+    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_cU.txt" );
     
     
     float nMin;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
     std::cout << "STARTING TEST 3: test for SPINING ALGORITHM COMPARED with original implementation" << std::endl;
     
 //     pcl::PointCloud<PointWithVector>::Ptr to_spin(new pcl::PointCloud<PointWithVector>);
-//     pcl::io::loadPCDFile("../../test/data/test_3_spin_visual.pcd", *to_spin);
+//     pcl::io::loadPCDFile("../../test/calculation_data/test_3_spin_visual.pcd", *to_spin);
 //     pcl::PointXYZ centroid;
 //     Eigen::Vector4f centroid_ei;
 //     pcl::compute3DCentroid(*to_spin, centroid_ei);
@@ -288,20 +288,20 @@ int main(int argc, char *argv[])
 //     std::cout << "You must check by your self output file "<< endl;
     
     
-    std::ifstream ifs_vectors ( "../../test/data/test_3_spin_8_vectors.dat" );
+    std::ifstream ifs_vectors ( "../../test/calculation_data/test_3_spin_8_vectors.dat" );
     Eigen::MatrixXf spin_vectors_precalculated;
     spin_vectors_precalculated.resize( IT::sampleSize, 3 ); 
     pcl::loadBinary( spin_vectors_precalculated,ifs_vectors );
  
 
-    std::ifstream ifs_descriptor ( "../../test/data/test_3_spin_8_descriptor.dat");
+    std::ifstream ifs_descriptor ( "../../test/calculation_data/test_3_spin_8_descriptor.dat");
     Eigen::MatrixXf spin_descriptor_precalculated;
     spin_descriptor_precalculated.resize( IT::sampleSize*IT::numOrientations, 3 ); 
     pcl::loadBinary( spin_descriptor_precalculated,ifs_descriptor );
     
     
     pcl::PointCloud<PointWithVector>::Ptr sample_to_spin(new pcl::PointCloud<PointWithVector>);
-    pcl::io::loadPCDFile("../../test/data/test_3_sample_pointwithvector_to_spin.pcd", *sample_to_spin);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_3_sample_pointwithvector_to_spin.pcd", *sample_to_spin);
     
     pcl::PointXYZ spinning_point(0.951572120189667,0.556678950786591,1.17748117446899);
     
@@ -348,20 +348,20 @@ int main(int argc, char *argv[])
     ////////////////////////////////////////////////////////////////////////
     
     //INPUTS
-    std::ifstream ifs_agg_vectors ( "../../test/data/test_4_agglomeration_input_vectors.dat");
+    std::ifstream ifs_agg_vectors ( "../../test/calculation_data/test_4_agglomeration_input_vectors.dat");
     Eigen::MatrixXf agglomerator_vectors;
     agglomerator_vectors.resize( IT::sampleSize, 3 ); 
     pcl::loadBinary( agglomerator_vectors,ifs_agg_vectors );
 
 
-    std::ifstream ifs_agg_descriptor ( "../../test/data/test_4_agglomeration_input_descriptor.dat");
+    std::ifstream ifs_agg_descriptor ( "../../test/calculation_data/test_4_agglomeration_input_descriptor.dat");
     Eigen::MatrixXf agglomerator_descriptor;
     agglomerator_descriptor.resize( IT::sampleSize*8, 3 ); 
     pcl::loadBinary( agglomerator_descriptor,ifs_agg_descriptor );
     
     //test_4_agglomeration_input_vectors.dat
     std::vector<float> agglomerator_mags;
-    agglomerator_mags = Util_iT::read_vector_from_file("../../test/data/test_4_agglomeration_input_mags.dat");
+    agglomerator_mags = Util_iT::read_vector_from_file("../../test/calculation_data/test_4_agglomeration_input_mags.dat");
     
     Agglomerator_IT agglomerator( agglomerator_vectors, agglomerator_descriptor, agglomerator_mags );
     agglomerator.compileAgglomeration();
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
     
     //descriptor
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_descriptor_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_descriptor.pcd",*agglomeration_descriptor_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_descriptor.pcd",*agglomeration_descriptor_pre);
     
     PV_Distance_PointXYZ distanceAgglo_descriptor( *agglomeration_descriptor_pre, *agglomerator.better_approx, false);
     distanceAgglo_descriptor.compute();
@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
     //extra
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_extra_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_extra.pcd",*agglomeration_extra_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_extra.pcd",*agglomeration_extra_pre);
     
     PV_Distance_PointXYZ distanceAgglo_extra( *agglomeration_extra_pre, *agglomerator.useful_cloud, false);
     distanceAgglo_extra.compute();
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
     //members
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_members_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_members.pcd",*agglomeration_members_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_members.pcd",*agglomeration_members_pre);
     
     PV_Distance_PointXYZ distanceAgglo_members( *agglomeration_members_pre, *agglomerator.aux_cloud, false);
     distanceAgglo_members.compute();
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
     
     //points
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_points_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_points.pcd",*agglomeration_points_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_points.pcd",*agglomeration_points_pre);
     
     PV_Distance_PointXYZ distanceAgglo_points( *agglomeration_points_pre, *agglomerator.bare_points, false);
     distanceAgglo_points.compute();
@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
     
     //vdata
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_vdata_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_vdata.pcd",*agglomeration_vdata_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_vdata.pcd",*agglomeration_vdata_pre);
     
     PV_Distance_PointXYZ distanceAgglo_vdata( *agglomeration_vdata_pre, *agglomerator.vectors_data_cloud, false);
     distanceAgglo_vdata.compute();
@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
     
     //vectors
     pcl::PointCloud<pcl::PointXYZ>::Ptr agglomeration_vectors_pre (new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/data/test_4_agglomeration_vectors.pcd",*agglomeration_vectors_pre);
+    pcl::io::loadPCDFile("../../test/calculation_data/test_4_agglomeration_vectors.pcd",*agglomeration_vectors_pre);
     
     PV_Distance_PointXYZ distanceAgglo_vectors( *agglomeration_vectors_pre, *agglomerator.vector_ids_agglomerative, false);
     distanceAgglo_vectors.compute();
@@ -434,7 +434,7 @@ int main(int argc, char *argv[])
 
     
     //point count
-    std::ifstream ifs_agg_point_count ( "../../test/data/test_4_agglomeration_point_count.dat", std::ifstream::in );
+    std::ifstream ifs_agg_point_count ( "../../test/calculation_data/test_4_agglomeration_point_count.dat", std::ifstream::in );
     Eigen::MatrixXf agglomerator_point_count;
     agglomerator_point_count.resize(1, 8); 
     pcl::loadBinary( agglomerator_point_count, ifs_agg_point_count );
