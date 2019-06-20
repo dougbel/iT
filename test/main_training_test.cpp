@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 
     // extract volume of interest from the scene
     pcl::PointCloud<pcl::PointXYZ>::Ptr sceneCloudFiltered(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::io::loadPCDFile("../../test/calculation_data/cene_cloud_filtered.pcd", *sceneCloudFiltered);
+    pcl::io::loadPCDFile("../../test/calculation_data/scene_cloud_filtered.pcd", *sceneCloudFiltered);
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr ibsFiltered(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::io::loadPCDFile("../../test/calculation_data/ibs_clouds_prefiltered_filtered.pcd", *ibsFiltered);
@@ -231,9 +231,9 @@ int main(int argc, char *argv[])
     std::vector<float> mags_c_precalculated;
     std::vector<float> mags_cU_precalculated;
     
-    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_c.txt" );
+    mags_c_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_c.txt" ,512);
    
-    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_cU.txt" );
+    mags_cU_precalculated = Util_iT::read_vector_from_file( "../../test/calculation_data/test_2_mags_cU.txt" ,512);
     
     
     float nMin;
@@ -290,13 +290,13 @@ int main(int argc, char *argv[])
     
     std::ifstream ifs_vectors ( "../../test/calculation_data/test_3_spin_8_vectors.dat" );
     Eigen::MatrixXf spin_vectors_precalculated;
-    spin_vectors_precalculated.resize( IT::sampleSize, 3 ); 
+    spin_vectors_precalculated.resize( 512, 3 ); 
     pcl::loadBinary( spin_vectors_precalculated,ifs_vectors );
  
 
     std::ifstream ifs_descriptor ( "../../test/calculation_data/test_3_spin_8_descriptor.dat");
     Eigen::MatrixXf spin_descriptor_precalculated;
-    spin_descriptor_precalculated.resize( IT::sampleSize*IT::numOrientations, 3 ); 
+    spin_descriptor_precalculated.resize( 512*8, 3 ); 
     pcl::loadBinary( spin_descriptor_precalculated,ifs_descriptor );
     
     
@@ -350,18 +350,18 @@ int main(int argc, char *argv[])
     //INPUTS
     std::ifstream ifs_agg_vectors ( "../../test/calculation_data/test_4_agglomeration_input_vectors.dat");
     Eigen::MatrixXf agglomerator_vectors;
-    agglomerator_vectors.resize( IT::sampleSize, 3 ); 
+    agglomerator_vectors.resize( 512, 3 ); 
     pcl::loadBinary( agglomerator_vectors,ifs_agg_vectors );
 
 
     std::ifstream ifs_agg_descriptor ( "../../test/calculation_data/test_4_agglomeration_input_descriptor.dat");
     Eigen::MatrixXf agglomerator_descriptor;
-    agglomerator_descriptor.resize( IT::sampleSize*8, 3 ); 
+    agglomerator_descriptor.resize( 512*8, 3 ); 
     pcl::loadBinary( agglomerator_descriptor,ifs_agg_descriptor );
     
     //test_4_agglomeration_input_vectors.dat
     std::vector<float> agglomerator_mags;
-    agglomerator_mags = Util_iT::read_vector_from_file("../../test/calculation_data/test_4_agglomeration_input_mags.dat");
+    agglomerator_mags = Util_iT::read_vector_from_file("../../test/calculation_data/test_4_agglomeration_input_mags.dat",512);
     
     Agglomerator_IT agglomerator( agglomerator_vectors, agglomerator_descriptor, agglomerator_mags );
     agglomerator.compileAgglomeration();

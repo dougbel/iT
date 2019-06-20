@@ -419,12 +419,13 @@ void IT::saveBasicInfo( std::string aff_path ){
     output_file.close();
     
     boost::property_tree::ptree root;
-    boost::property_tree::write_json(std::cout, root);
     
     std::ostringstream string_stream;
     
     root.put("Scene name", "not implemented");  //TODO no scene name 
     root.put("Object name", this->objectName);
+    root.put("Sample size", this->sampleSize);
+    root.put("Orientations", this->numOrientations);
     
     boost::property_tree::ptree refIBS;
     refIBS.put("idxRefIBS", idxRefIBS);
@@ -451,8 +452,7 @@ void IT::saveBasicInfo( std::string aff_path ){
     objPointVector.put("idxRefObject", idxRefObject);
     string_stream << vectSceneToObject[0] << "," << vectSceneToObject[1]<<","<<vectSceneToObject[2];
     objPointVector.put("vectSceneToObject", string_stream.str());
-    root.add_child("ObjPointVector", objPointVector);
-    
+    root.add_child("ObjPointVector", objPointVector);   
     std::string json_file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".json";
     boost::property_tree::write_json( json_file_name, root );
 }
@@ -522,6 +522,14 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
 
     std::string aff_path = IT::getDirectory(affordance_name, object_name);
     
+    // Create a root
+    boost::property_tree::ptree root;
+    // Load the json file in this ptree
+    std::string json_file_name= aff_path + "ibs_full_" + affordance_name + "_" + object_name + ".json";
+    boost::property_tree::read_json(json_file_name, root);
+    int sampleSize      = root.get<int>("Sample size");
+    int numOrientations = root.get<int>("Orientations");
+    
     //load scene point
     std::string scene_cloud_filename   = aff_path + affordance_name + "_" + object_name + "_scene_full.pcd";
     
@@ -537,6 +545,8 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     
     
     IT itcalculator( cloud_scene, cloud_object, affordance_name, object_name);
+    itcalculator.sampleSize = sampleSize;
+    itcalculator.numOrientations = numOrientations;
     
     
      //load scene cloud filtered point 
@@ -564,8 +574,8 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
 //     sumSmooth   = pv_it->sumSmooth;
     
     // load samples
-    std::string new_ibs_sample  = aff_path + "ibs_sample_" + std::to_string(IT::sampleSize) + "_" + affordance_name + "_" + object_name + "_better.pcd";
-    std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(IT::sampleSize) + "_" + affordance_name + "_" + object_name + "_betterUniform.pcd";
+    std::string new_ibs_sample  = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + affordance_name + "_" + object_name + "_better.pcd";
+    std::string new_ibs_sampleU = aff_path + "ibs_sample_" + std::to_string(sampleSize) + "_" + affordance_name + "_" + object_name + "_betterUniform.pcd";
     pcl::io::loadPCDFile( new_ibs_sample.c_str(), *itcalculator.sampleW);   // here reference point are saved, it is better not to save them 
     pcl::io::loadPCDFile( new_ibs_sampleU.c_str(), *itcalculator.sampleU);  // I erase such necesity in the spin creations
 
@@ -590,38 +600,30 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     itcalculator.sampleW->erase( itcalculator.sampleW->end()-1 );
     itcalculator.sampleU->erase( itcalculator.sampleU->end()-1 );
 
-
-    // Create a root
-    boost::property_tree::ptree root;
-    // Load the json file in this ptree
-    std::string json_file_name= aff_path + "ibs_full_" + affordance_name + "_" + object_name + ".json";
-    boost::property_tree::read_json(json_file_name, root);
     itcalculator.idxRefScene =  root.get<int>("ScenePoint.idxScenePoint");
     itcalculator.refPointScene = Util_iT::stringToPoint( root.get<std::string>("ScenePoint.refPointScene") );
     
-    
-    
     //load spinners
-    std::string spin_fileU        = aff_path + affordance_name + "_" + object_name + "_spinU_" + std::to_string(IT::numOrientations) + ".dat";
-    std::string spinvectors_fileU = aff_path + affordance_name + "_" + object_name + "_spinUvectors_" + std::to_string(IT::numOrientations) + ".dat";
+    std::string spin_fileU        = aff_path + affordance_name + "_" + object_name + "_spinU_" + std::to_string(numOrientations) + ".dat";
+    std::string spinvectors_fileU = aff_path + affordance_name + "_" + object_name + "_spinUvectors_" + std::to_string(numOrientations) + ".dat";
     
     std::ifstream ifs_vectorsU ( spinvectors_fileU );
-    itcalculator.spinnedVectorsU.resize( IT::sampleSize, 3 ); 
+    itcalculator.spinnedVectorsU.resize( sampleSize, 3 ); 
     pcl::loadBinary( itcalculator.spinnedVectorsU, ifs_vectorsU );
     
     std::ifstream ifs_descriptorU ( spin_fileU );
-    itcalculator.spinnedDescriptorU.resize( IT::sampleSize*IT::numOrientations, 3 ); 
+    itcalculator.spinnedDescriptorU.resize( sampleSize*numOrientations, 3 ); 
     pcl::loadBinary( itcalculator.spinnedDescriptorU, ifs_descriptorU );
    
-    std::string spin_fileW        = aff_path + affordance_name + "_" + object_name + "_spin_"+ std::to_string(IT::numOrientations)+".dat";
-    std::string spinvectors_fileW = aff_path + affordance_name + "_" + object_name + "_spinvectors_"+ std::to_string(IT::numOrientations)+".dat";
+    std::string spin_fileW        = aff_path + affordance_name + "_" + object_name + "_spin_"+ std::to_string(numOrientations)+".dat";
+    std::string spinvectors_fileW = aff_path + affordance_name + "_" + object_name + "_spinvectors_"+ std::to_string(numOrientations)+".dat";
 
     std::ifstream ifs_vectorsW ( spinvectors_fileW );
-    itcalculator.spinnedVectorsW.resize( IT::sampleSize, 3 ); 
+    itcalculator.spinnedVectorsW.resize( sampleSize, 3 ); 
     pcl::loadBinary( itcalculator.spinnedVectorsW, ifs_vectorsW );
     
     std::ifstream ifs_descriptorW ( spin_fileW );
-    itcalculator.spinnedDescriptorW.resize( IT::sampleSize*IT::numOrientations, 3 ); 
+    itcalculator.spinnedDescriptorW.resize( sampleSize*numOrientations, 3 ); 
     pcl::loadBinary( itcalculator.spinnedDescriptorW, ifs_descriptorW );
     
     
@@ -630,12 +632,12 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     std::vector<float> magsU;
     std::string base_nameU;
    
-    base_nameU = aff_path + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(IT::numOrientations);
+    base_nameU = aff_path + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(numOrientations);
         
     file_nameU = base_nameU + "_vdata.pcd";
     pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudU( new pcl::PointCloud<pcl::PointXYZ>);
     pcl::io::loadPCDFile(file_nameU.c_str(), *vectors_data_cloudU);
-    for( int i = 0 ; i < IT::sampleSize ; i++)
+    for( int i = 0 ; i < sampleSize ; i++)
         magsU.push_back( vectors_data_cloudU->at(i).y );
     
     
@@ -669,12 +671,12 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     std::vector<float> magsW;
     std::string base_nameW;
    
-    base_nameW = aff_path + "New_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(IT::numOrientations);
+    base_nameW = aff_path + "New_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(numOrientations);
         
     file_nameW = base_nameW + "_vdata.pcd";
     pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudW(new pcl::PointCloud<pcl::PointXYZ>);;
     pcl::io::loadPCDFile(file_nameW.c_str(), *vectors_data_cloudW);
-    for( int i = 0 ; i < IT::sampleSize ; i++)
+    for( int i = 0 ; i < sampleSize ; i++)
         magsW.push_back( vectors_data_cloudW->at(i).y );
     
     

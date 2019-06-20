@@ -28,7 +28,7 @@ public:
     int n_orientations;
         
     void compileAgglomeration();
-    static Agglomerator_IT loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize);
+    static Agglomerator_IT loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize,  int numOrientations);
     
 private:
     

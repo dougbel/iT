@@ -21,7 +21,7 @@ Agglomerator_IT::Agglomerator_IT(Eigen::Matrix< float, Eigen::Dynamic, 3 , Eigen
     
     // point counts per affordance per orientation
     // Mostly useful for normalization in multiple affordance prediction
-    // for single affordance case: 1x8 matrix with sampleSize in each element
+    // for single affordance case: 1xn_orientations matrix with sampleSize in each element
     this->data_individual =  Eigen::MatrixXf(1,n_orientations);
     this->data_individual << Eigen::MatrixXf::Zero(1,n_orientations);
 }
@@ -71,7 +71,7 @@ void Agglomerator_IT::compileAgglomeration()
     }
 }
 
-Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize)
+Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize, int numOrientations)
 {
     
     Agglomerator_IT agglomeratorU = Agglomerator_IT();
@@ -88,7 +88,7 @@ Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string afforda
     std::string file_nameU;
     std::string base_nameU;
    
-    base_nameU = path + "/" + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_8";   //TODO  it is necesary avoid the num of Orientations
+    base_nameU = path + "/" + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_"+std::to_string(numOrientations);
         
         
     file_nameU=base_nameU+"_members.pcd";
@@ -114,7 +114,7 @@ Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string afforda
 
     // point counts per affordance per orientation
     // Mostly useful for normalization in multiple affordance prediction
-    // for single affordance case: 1x8 matrix with sampleSize in each element
+    // for single affordance case: 1xn_orientations matrix with sampleSize in each element
     agglomeratorU.data_individual =  Eigen::MatrixXf(1, agglomeratorU.n_orientations);
     agglomeratorU.data_individual << Eigen::MatrixXf::Zero(1, agglomeratorU.n_orientations);
     

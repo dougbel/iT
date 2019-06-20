@@ -81,8 +81,8 @@ public:
     
 
     //Sample size to take from tensor
-    static const int sampleSize = 512;
-    static const int numOrientations = 8;
+    int sampleSize = 512;
+    int numOrientations = 8;
     
 private:
     

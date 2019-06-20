@@ -396,7 +396,7 @@ public:
      * @param filename The file name to be readed
      * @return The vector which values were readed from file
      */
-    static std::vector<float> read_vector_from_file(std::string filename)
+    static std::vector<float> read_vector_from_file(std::string filename, int size)
     {    
         std::vector<float> newVector;
         
@@ -406,7 +406,7 @@ public:
         
         pcl::loadBinary(v, is);
         
-        for(int i = 0 ; i < 512; i++){
+        for(int i = 0 ; i < size; i++){
             newVector.push_back(v(i));
         }
         
