@@ -13,7 +13,7 @@
 int main(int argc, char *argv[])
 {
     //IT it = IT::loadFiles("Place", "bowl");
-    //Agglomerator_IT agglo = Agglomerator_IT::loadFiles("./Place", "Place", "bowl", 512);
+    //Agglomerator_IT agglo = Agglomerator_IT::loadFiles("./Place", "Place", "bowl", 512, 8);
     
     
     //full scene point cloud

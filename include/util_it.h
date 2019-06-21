@@ -192,7 +192,48 @@ public:
     }
     
     
+    static std::vector<float> mapMagnitudes(std::vector<float> mags, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+        
+        int size = mags.size();
+        
+        std::vector<float> maped_mags(size);
+        
+        
+        for( int i=0; i<size; i++ )
+        {
+            //Save maped_mags in sampled mapped in [min_mapped-max_mapped] based on full tensor mags
+            maped_mags.at(i)=Util_iT::getValueProporcionsRule( mags.at(i), min_original_range, max_original_range, min_mapped, max_mapped ); 
+        
+        }
+        
+        return maped_mags;
+    
+    }
+    
+    
     static std::vector<float> calculatedMappedMagnitudesToVector(pcl::PointCloud<PointWithVector> &point_normal_cloud, float min_original_range, float max_original_range, float min_mapped, float max_mapped){
+        
+        int size = point_normal_cloud.size();
+        
+        std::vector<float> maped_mags(size);
+        
+        std::vector<float> mags;
+        
+        mags = Util_iT::calculatedMagnitudesToVector(point_normal_cloud);
+        
+        for( int i=0; i<size; i++ )
+        {
+            //Save maped_mags in sampled mapped in [min_mapped-max_mapped] based on full tensor mags
+            maped_mags.at(i)=Util_iT::getValueProporcionsRule( mags.at(i), min_original_range, max_original_range, min_mapped, max_mapped ); 
+        
+        }
+        
+        return maped_mags;
+    
+    }
+    
+    
+    static std::vector<float> calculatedMagnitudesToVector(pcl::PointCloud<PointWithVector> &point_normal_cloud){
         
         int size = point_normal_cloud.size();
         
@@ -202,14 +243,9 @@ public:
         {
             PointWithVector backup = point_normal_cloud.at( i );
             Eigen::Vector3f backupNormal( backup.v1, backup.v2, backup.v3);
-        
-            //Save mags in sampled mapped in 0-1 based on full tensor mags
-            mags.at(i)=Util_iT::getValueProporcionsRule( backupNormal.norm(), min_original_range, max_original_range, min_mapped, max_mapped ); 
-        
+            mags.at(i) = backupNormal.norm();
         }
-        
         return mags;
-    
     }
     
     

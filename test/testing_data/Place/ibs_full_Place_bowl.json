@@ -1,0 +1,22 @@
+{
+    "Scene name": "not implemented",
+    "Object name": "bowl",
+    "Sample size": "512",
+    "Orientations": "8",
+    "Reference": {
+        "idxRefIBS": "15",
+        "refPointIBS": "0.950785,0.556681,1.1789"
+    },
+    "ScenePoint": {
+        "idxScenePoint": "0",
+        "refPointScene": "0.951572,0.556679,1.17748"
+    },
+    "IbsPointVector": {
+        "idxRefIBS": "15",
+        "vectSceneToIBS": "-0.000787377,1.78814e-06,0.0014168"
+    },
+    "ObjPointVector": {
+        "idxRefObject": "83122",
+        "vectSceneToObject": "-0.000451446,8.91089e-05,0.00300002"
+    }
+}

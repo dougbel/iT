@@ -8,13 +8,19 @@
 #include <pcl/filters/extract_indices.h>
 
 #include "it.h"
+#include "Testing/it_testing.h"
 
 
 int main(int argc, char *argv[])
 {
 
-   std::cout << argv[0] << " - " << argv[1] << " - " << argv[2] << " - " << argv[3] << std::endl;
+    
+    IT_Testing testing("../../test/testing_data", "testing.json");
 
+   
+   
+   //std::cout << argv[0] << " - " << argv[1] << " - " << argv[2] << " - " << argv[3] << std::endl;
+   
    
     return EXIT_SUCCESS;
 }

@@ -177,10 +177,10 @@ sw.Restart();
     this->spinnedDescriptorW = spinnerW.descriptor;
     
     //Save mags in sampled mapped in 0-1 based on full tensor mags
-    std::vector<float> mags_cW;
-    mags_cW  = Util_iT::calculatedMappedMagnitudesToVector( *sampleW, nMin, nMax, 1, 0 );
+    std::vector<float> mappedPVNormsW;
+    mappedPVNormsW  = Util_iT::mapMagnitudes( samplerW.vectorsNorms, nMin, nMax, 1, 0 );
     
-    agglomeratorW = new Agglomerator_IT( this->spinnedVectorsW, this->spinnedDescriptorW, mags_cW );
+    agglomeratorW = new Agglomerator_IT( this->spinnedVectorsW, this->spinnedDescriptorW, samplerW.vectorsNorms, mappedPVNormsW );
     agglomeratorW->compileAgglomeration();
     
   
@@ -192,10 +192,10 @@ sw.Restart();
     this->spinnedDescriptorU = spinnerU.descriptor;
     
     //Mags in sampled mapped in 0-1 based on full tensor mags
-    std::vector<float> mags_cU; 
-    mags_cU = Util_iT::calculatedMappedMagnitudesToVector( *sampleU, nMin, nMax, 1, 0 );
+    std::vector<float> mappedPVNormsU; 
+    mappedPVNormsU = Util_iT::mapMagnitudes( samplerU.vectorsNorms, nMin, nMax, 1, 0 );
     
-    agglomeratorU = new Agglomerator_IT( this->spinnedVectorsU, this->spinnedDescriptorU, mags_cU );
+    agglomeratorU = new Agglomerator_IT( this->spinnedVectorsU, this->spinnedDescriptorU, samplerU.vectorsNorms, mappedPVNormsU );
     agglomeratorU->compileAgglomeration();
     
     
@@ -453,7 +453,7 @@ void IT::saveBasicInfo( std::string aff_path ){
     string_stream << vectSceneToObject[0] << "," << vectSceneToObject[1]<<","<<vectSceneToObject[2];
     objPointVector.put("vectSceneToObject", string_stream.str());
     root.add_child("ObjPointVector", objPointVector);   
-    std::string json_file_name= aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".json";
+    std::string json_file_name= aff_path + this->affordanceName + "_" + this->objectName + ".json";
     boost::property_tree::write_json( json_file_name, root );
 }
 
@@ -525,7 +525,7 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     // Create a root
     boost::property_tree::ptree root;
     // Load the json file in this ptree
-    std::string json_file_name= aff_path + "ibs_full_" + affordance_name + "_" + object_name + ".json";
+    std::string json_file_name= aff_path + affordance_name + "_" + object_name + ".json";
     boost::property_tree::read_json(json_file_name, root);
     int sampleSize      = root.get<int>("Sample size");
     int numOrientations = root.get<int>("Orientations");
@@ -629,7 +629,8 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     
     //load aglorrepresentation
     std::string file_nameU;
-    std::vector<float> magsU;
+    std::vector<float> pv_norms_U;
+    std::vector<float> pv_norms_mappedU;
     std::string base_nameU;
    
     base_nameU = aff_path + "UNew_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(numOrientations);
@@ -637,11 +638,17 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     file_nameU = base_nameU + "_vdata.pcd";
     pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudU( new pcl::PointCloud<pcl::PointXYZ>);
     pcl::io::loadPCDFile(file_nameU.c_str(), *vectors_data_cloudU);
-    for( int i = 0 ; i < sampleSize ; i++)
-        magsU.push_back( vectors_data_cloudU->at(i).y );
+    
+    pv_norms_U.reserve(sampleSize);
+    pv_norms_mappedU.reserve(sampleSize);
+    
+    for( int i = 0 ; i < sampleSize ; i++){
+        pv_norms_U.push_back( vectors_data_cloudU->at(i).x);
+        pv_norms_mappedU.push_back( vectors_data_cloudU->at(i).y );
+    }
     
     
-    Agglomerator_IT *agglomeratorU = new Agglomerator_IT( itcalculator.spinnedVectorsU, itcalculator.spinnedDescriptorU, magsU );
+    Agglomerator_IT *agglomeratorU = new Agglomerator_IT( itcalculator.spinnedVectorsU, itcalculator.spinnedDescriptorU, pv_norms_U, pv_norms_mappedU );
        
 
     file_nameU=base_nameU+"_members.pcd";
@@ -668,19 +675,26 @@ IT IT::loadFiles(std::string affordance_name, std::string object_name)
     
     
     std::string file_nameW;
-    std::vector<float> magsW;
+    std::vector<float> pv_norms_W;
+    std::vector<float> pv_norms_mappedW;
     std::string base_nameW;
    
     base_nameW = aff_path + "New_"+ affordance_name + "_" + object_name + "_descriptor_" + std::to_string(numOrientations);
         
     file_nameW = base_nameW + "_vdata.pcd";
-    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudW(new pcl::PointCloud<pcl::PointXYZ>);;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr vectors_data_cloudW(new pcl::PointCloud<pcl::PointXYZ>);
     pcl::io::loadPCDFile(file_nameW.c_str(), *vectors_data_cloudW);
-    for( int i = 0 ; i < sampleSize ; i++)
-        magsW.push_back( vectors_data_cloudW->at(i).y );
+    
+    pv_norms_W.reserve(sampleSize);
+    pv_norms_mappedW.reserve(sampleSize);
+    
+    for( int i = 0 ; i < sampleSize ; i++){
+        pv_norms_W.push_back( vectors_data_cloudW->at(i).x );
+        pv_norms_mappedW.push_back( vectors_data_cloudW->at(i).y );
+    }
     
     
-    Agglomerator_IT *agglomeratorW = new Agglomerator_IT( itcalculator.spinnedVectorsW, itcalculator.spinnedDescriptorW, magsW );
+    Agglomerator_IT *agglomeratorW = new Agglomerator_IT( itcalculator.spinnedVectorsW, itcalculator.spinnedDescriptorW, pv_norms_W, pv_norms_mappedW);
        
 
     file_nameW=base_nameW+"_members.pcd";

@@ -4,12 +4,14 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include "type_point_it.h"
+#include <vector>
 
 class Sampler_iT
  {
     public:
                 
         pcl::PointCloud<PointWithVector>::Ptr sample;
+        std::vector<float> vectorsNorms;
         
         std::vector< std::pair<int, double>> getIdxNormKeypoints()
         {
@@ -70,6 +72,7 @@ class Sampler_iT
         void extractSample( ){
             
             this->sample = pcl::PointCloud<PointWithVector>::Ptr(new pcl::PointCloud<PointWithVector>);
+            this->vectorsNorms.reserve(sampleSize);
                         
             //std::cout<<"extracting new sample...";
             for(int i=0;i<sampleSize;i++)
@@ -79,9 +82,9 @@ class Sampler_iT
                 PointWithVector pv;
                 pcl::PointNormal pn;
                 int index;
-                
+                                
                 index   = this->idxNormKeypoints.at(i).first;
-                pn      = this->provenanceVectors->at(index);
+                pn      = this->provenanceVectors->at( index );
                                 
                 pv.x    = pn.x;
                 pv.y    = pn.y;
@@ -90,7 +93,14 @@ class Sampler_iT
                 pv.v2   = pn.normal_y;
                 pv.v3   = pn.normal_z;
                 
-                this->sample->push_back(pv);
+                this->sample->push_back( pv );
+                
+                
+                float pv_norm;
+                
+                pv_norm = this->idxNormKeypoints.at(i).second;
+                
+                this->vectorsNorms.push_back( pv_norm );
                 
             }
         }

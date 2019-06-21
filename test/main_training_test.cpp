@@ -360,10 +360,17 @@ int main(int argc, char *argv[])
     pcl::loadBinary( agglomerator_descriptor,ifs_agg_descriptor );
     
     //test_4_agglomeration_input_vectors.dat
-    std::vector<float> agglomerator_mags;
-    agglomerator_mags = Util_iT::read_vector_from_file("../../test/calculation_data/test_4_agglomeration_input_mags.dat",512);
+    std::vector<float> agglomerator_pv_norms_mapped;
+    std::vector<float> agglomerator_pv_norms;
+    agglomerator_pv_norms_mapped = Util_iT::read_vector_from_file("../../test/calculation_data/test_4_agglomeration_input_mags.dat",512);
     
-    Agglomerator_IT agglomerator( agglomerator_vectors, agglomerator_descriptor, agglomerator_mags );
+    agglomerator_pv_norms.reserve(512);
+    for(int i =0; i < 512; i++){
+        agglomerator_pv_norms.push_back( agglomerator_vectors.row(i).norm() );    
+    }
+    
+    
+    Agglomerator_IT agglomerator( agglomerator_vectors, agglomerator_descriptor, agglomerator_pv_norms,  agglomerator_pv_norms_mapped );
     agglomerator.compileAgglomeration();
     
     //OUTPUTS
