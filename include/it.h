@@ -38,11 +38,10 @@
 class IT
 {
 public:
+    
     IT( pcl::PointCloud<pcl::PointXYZ>::Ptr scene, pcl::PointCloud<pcl::PointXYZ>::Ptr object, std::string name_affordance, std::string name_object);
     
     static IT loadFiles(std::string affordance_name, std::string object_name);
-    
-    static std::string getDirectory(std::string affordance_name, std::string object_name);
     
     void calculate();
     

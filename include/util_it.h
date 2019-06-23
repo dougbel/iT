@@ -494,9 +494,18 @@ public:
         return output;
     }
 
+
+    static std::string getWorkingDirectory(std::string affordance_name, std::string object_name)
+    {
+        std::string aff_path ;
+        
+        aff_path = affordance_name + "/";                      //TODO this could be change by the hash string info
+        
+        return aff_path; 
+    }
+
     
 };
-
     
 
     

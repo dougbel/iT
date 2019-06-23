@@ -335,7 +335,7 @@ void IT::saveProvenanceIBS(std::string aff_path)
     std::string smoother_field  = aff_path + this->affordanceName + "_" +this->objectName + "_smoothfield.pcd";
     std::string full_ibs        = aff_path + "ibs_full_" + this->affordanceName + "_" + this->objectName + ".pcd";
     
-    std::string query_object    = aff_path + this->objectName + ".pcd";
+    //std::string query_object    = aff_path + this->objectName + ".pcd";
     
     
     pcl::io::savePCDFileASCII( new_ibs_field.c_str(), *pv_it->rawProvenanceVectors);
@@ -345,7 +345,7 @@ void IT::saveProvenanceIBS(std::string aff_path)
     pcl::io::savePCDFile( smoother_field.c_str(), *pv_it->smoothedProvenanceVectors);
     pcl::io::savePCDFile( full_ibs, *ibsFiltered);
     
-    pcl::io::savePCDFile( query_object, *this->objectCloud);
+    //pcl::io::savePCDFile( query_object, *this->objectCloud); // it is saved two times it is not anymore necesary do it here
     
     
     //TODO I add this point but inmediatly erased it because I erased their necesity in the "SPIN CALCULATION"
@@ -484,7 +484,7 @@ std::string IT::prepareDirectory(){
     
      std::string aff_path ;
      
-     aff_path = IT::getDirectory(this->affordanceName, this->objectName);
+     aff_path = Util_iT::getWorkingDirectory(this->affordanceName, this->objectName);
      
     if (!boost::filesystem::exists( this->affordanceName.c_str() ) )
     {
@@ -502,14 +502,7 @@ std::string IT::prepareDirectory(){
 }
 
 
-std::string IT::getDirectory(std::string affordance_name, std::string object_name)
-{
-    std::string aff_path ;
-    
-    aff_path = affordance_name + "/";                      //TODO this could be change by the hash string info
-    
-    return aff_path; 
-}
+
 
 
 
@@ -520,7 +513,7 @@ std::string IT::getDirectory(std::string affordance_name, std::string object_nam
 IT IT::loadFiles(std::string affordance_name, std::string object_name)
 {
 
-    std::string aff_path = IT::getDirectory(affordance_name, object_name);
+    std::string aff_path = Util_iT::getWorkingDirectory(affordance_name, object_name);
     
     // Create a root
     boost::property_tree::ptree root;

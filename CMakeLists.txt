@@ -26,7 +26,8 @@ set(QHULL_LIBRARIES /usr/local/lib/libqhullcpp.a /usr/local/lib/libqhullstatic_r
 #for reference IT
 set(IT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(IT_SOURCES_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(IT_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_SOURCE_DIR}/include/Testing)
+set(IT_HEADERS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(IT_HEADERS_DIR_TEST ${CMAKE_CURRENT_SOURCE_DIR}/include/Testing)
 set(IT_SOURCES ${IBS_SOURCES}  ${IT_SOURCES_DIR}/it.cpp 
                 ${IT_SOURCES_DIR}/provenancevectors_it.cpp 
                 ${IT_SOURCES_DIR}/sampleruniform_it.cpp 
@@ -46,13 +47,17 @@ message(STATUS "IBS_SOURCES=${IBS_SOURCES}")
 message(STATUS "IT_DIR=${IT_DIR}")
 message(STATUS "IT_SOURCES_DIR=${IT_SOURCES_DIR}")
 message(STATUS "IT_HEADERS_DIR=${IT_HEADERS_DIR}")
+message(STATUS "IT_HEADERS_DIR_TEST=${IT_HEADERS_DIR_TEST}")
 message(STATUS "IT_SOURCES=${IT_SOURCES}")
+
+
 
 #include directories
 include_directories(${PCL_INCLUDE_DIRS})
 include_directories(${QHULL_INCLUDE_DIR})
 include_directories(${IBS_HEADERS_DIR})
 include_directories(${IT_HEADERS_DIR})
+include_directories(${IT_HEADERS_DIR_TEST})
 include_directories(${EIGEN3_INCLUDE_DIR})
 
 

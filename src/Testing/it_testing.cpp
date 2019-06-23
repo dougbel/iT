@@ -7,38 +7,59 @@ IT_Testing::IT_Testing(std::string path, std::string paremeters_file)
     if( ! boost::algorithm::ends_with(path, "/"))
         this->path_data = path + "/";
     
-    boost::property_tree::ptree root;
-    boost::property_tree::read_json( this->path_data + paremeters_file, root);
+    boost::property_tree::ptree parameters;
+    boost::property_tree::read_json( this->path_data + paremeters_file, parameters);
     
-    sample_percentage =  root.get<float>("parameters.Sample")/100;
-    log_level         =  root.get<int>("parameters.Debug");
-    agg_th            =  root.get<float>("parameters.VectorDiff")/100;
-    pred_t            =  root.get<float>("parameters.PredictionT")/100;
+    sample_percentage =  parameters.get<float>("parameters.Sample")/100;
+    log_level         =  parameters.get<int>("parameters.Debug");
+    agg_th            =  parameters.get<float>("parameters.VectorDiff")/100;
+    pred_t            =  parameters.get<float>("parameters.PredictionT")/100;
         
     
-    for( const boost::property_tree::ptree::value_type &v :  root.get_child("interactions") )
+    for( const boost::property_tree::ptree::value_type &to_test :  parameters.get_child("interactions") )
     {   
-        std::string affordance_name = v.second.get<std::string>("affordance_name");  
-        std::string object_name = v.second.get<std::string>("object_name");
-        std::string aff_path = IT::getDirectory( affordance_name, object_name );
+        std::string affordance_name;
+        std::string object_name;
+        std::string aff_path;
         
-        aff_path = this->path_data + aff_path;
-
-        std::string json_file_name= aff_path + affordance_name + "_" + object_name + ".json";
+        affordance_name = to_test.second.get<std::string>("affordance_name");  
+        object_name     = to_test.second.get<std::string>("object_name");
+        aff_path        = this->path_data + Util_iT::getWorkingDirectory( affordance_name, object_name );
         
-        boost::property_tree::ptree json_analyzer;
-        boost::property_tree::read_json(json_file_name, json_analyzer);
+        std::string json_file_name;
         
-        int sampleSize      = json_analyzer.get<int>("Sample size");
-        int numOrientations = json_analyzer.get<int>("Orientations");
-        
-        Agglomerator_IT agglo = Agglomerator_IT::loadFiles( aff_path, affordance_name, object_name, sampleSize, numOrientations );
-        
-        this->interactions.push_back(agglo);
+        json_file_name = aff_path + affordance_name + "_" + object_name + ".json";
+        {
+            boost::property_tree::ptree interaction_json;
+            boost::property_tree::read_json(json_file_name, interaction_json);
+            
+            int sampleSize;
+            int numOrientations;
+            sampleSize      = interaction_json.get<int>("Sample size");
+            numOrientations = interaction_json.get<int>("Orientations");
+            
+            Agglomerator_IT agglo = Agglomerator_IT::loadFiles( aff_path, affordance_name, object_name, sampleSize, numOrientations );
+            
+            this->interactions.push_back(agglo);
+            
+            
+            std::string object_cloud_filename ;
+            object_cloud_filename = aff_path + affordance_name + "_" + object_name + "_object.pcd";
+            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_object (new pcl::PointCloud<pcl::PointXYZ>);
+            pcl::io::loadPCDFile(object_cloud_filename, *cloud_object);
+            
+            this->object_clouds.push_back(cloud_object);
+            
+            pcl::PointXYZ minObj;
+            pcl::PointXYZ maxObj;
+                           
+            pcl::getMinMax3D( *cloud_object, minObj, maxObj );
+            
+            
+            object_diags_size.push_back( pcl::L2_Norm(minObj.getArray3fMap(),maxObj.getArray3fMap(),3) );
+            
   
-        
-        
-        
+        }
     }
     
     
@@ -47,14 +68,14 @@ IT_Testing::IT_Testing(std::string path, std::string paremeters_file)
     std::cout << "log_level " << log_level << std::endl;
     std::cout << "agg_th " << agg_th << std::endl;    
     std::cout << "pred_t " << pred_t << std::endl;
-    for( const boost::property_tree::ptree::value_type &v :  root.get_child("interactions") )
+    for( const boost::property_tree::ptree::value_type &v :  parameters.get_child("interactions") )
         std::cout << "interaction " << v.second.get<std::string>("affordance_name") << ", " << v.second.get<std::string>("object_name") << std::endl; 
     
 }
 
 
 
-void IT_Testing::testInteractions(pcl::PointCloud<pcl::PointXYZ> whole_scene){
+void IT_Testing::testInteractions(pcl::PointCloud<pcl::PointXYZ>::Ptr whole_scene){
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr spinCloud;
     pcl::PointCloud<pcl::PointXYZ>::Ptr largeData;
@@ -75,4 +96,53 @@ void IT_Testing::testInteractions(pcl::PointCloud<pcl::PointXYZ> whole_scene){
     large_mags = this->interactions[0].large_mags;
     large_lengths = this->interactions[0].large_lengths;
     alternative_data_counts = this->interactions[0].alternative_data_counts;
+    
+    
+      
+    std::cout<<"Creating octree...";
+    octree.reset(new pcl::octree::OctreePointCloudSearch<pcl::PointXYZ>(true));
+    octree->setResolution( this->object_diags_size[0] * 2 );                                                    //TODO this is object dependend
+    octree->setInputCloud (whole_scene);
+    octree->defineBoundingBox();
+    octree->addPointsFromInputCloud ();
+    std::cout<<"done"<<std::endl;
+    
+/////////////////APO: SAMPLING
+    pcl::PointCloud<pcl::PointXYZ>::Ptr sample_scene;
+    pcl::RandomSample<pcl::PointXYZ> random_sampler;      //this applies a random sample with uniform probabiliti
+    std::vector<int> randomSampleIdx;
+   
+    sample_scene.reset(new pcl::PointCloud<pcl::PointXYZ>);
+    
+    random_sampler.setSample( this->sample_percentage * whole_scene->size() );
+    random_sampler.setInputCloud( whole_scene );
+    random_sampler.setSeed( unsigned ( std::time(0) ) );
+    random_sampler.filter(*sample_scene);
+  
+    
+    //to keep track progress
+    int topCount = sample_scene->size();
+    int progress = 0;
+    
+    
+////////////////APO: for visualizing
+    //PointCloud::Ptr object(new PointCloud);
+    //pcl::PolygonMesh::Ptr best_object(new pcl::PolygonMesh);
+    
+    
+/////////////////APO: PREPARE CONTAINERS FOR RESULTS
+    pcl::PointCloud<pcl::PointXYZ>::Ptr goodData(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr goodPoints(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr sampledPoints(new pcl::PointCloud<pcl::PointXYZ>);
+    
+    std::vector<float> best_local_angle(1);     //(myTensor.affordance_name.size());  //TODO it is necesary understand how they perform multiple affordance prediction
+    std::vector<float> best_angle(1);           //(myTensor.affordance_name.size());
+    
+    std::vector<float> best_local_score(1,0);   //(myTensor.affordance_name.size(),0);
+    std::vector<float> best_score(1,0);         //(myTensor.affordance_name.size(),0);
+    
+    std::vector<int> success_counter(1,0);           //myTensor.affordance_name.size(),0);
+    
+    bool goodPoint=false;
+    
 }
