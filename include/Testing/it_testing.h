@@ -22,6 +22,8 @@
 #include <pcl/gpu/containers/device_array.h>
 #include <pcl/gpu/containers/initialization.h>
 
+#include "Testing/dev_array.h"
+
 
 
 class IT_Testing

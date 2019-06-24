@@ -145,4 +145,64 @@ void IT_Testing::testInteractions(pcl::PointCloud<pcl::PointXYZ>::Ptr whole_scen
     
     bool goodPoint=false;
     
+    
+/////////////////APO: SETUP GPU
+    // clock to compute "frame rate" or points tested per second
+    std::clock_t ppsecond;
+
+    // Set GPU/cuda stuff 
+
+//     // If more than 1 GPU  you can set it here
+    dev_array<float>::setGPU(0);
+    // Keypoints: 2048 points x 3 components
+    dev_array<float> d_kpData(largeDescriptor.rows()*3);
+    d_kpData.set(largeDescriptor.data(),largeDescriptor.rows()*3);
+    // Provenance Vectors: 512 vectors x 3 components
+    dev_array<float> d_pvData(largeVectors.rows()*3);
+    d_pvData.set(largeVectors.data(),largeVectors.rows()*3);
+    // Provenance Vectors: 512 vector lengths
+    dev_array<float> d_weights(large_lengths.size());
+    d_weights.set(&large_lengths[0],large_lengths.size());
+    // Provenance Vectors: 512 vector weights
+    dev_array<float> d_mags(large_mags.size());
+    d_mags.set(&large_mags[0],large_mags.size());
+    // Usefull for multiple affordance, for single affordance this
+    // is a 2048 array full on 1's
+    dev_array<int> d_ppCentroid(largeDescriptor.rows());
+    d_ppCentroid.set(&ppCentroid[0],largeDescriptor.rows());
+    // Usefull for multiple affordance, for single affordance this
+    // is a 2048 with the cumsum of ppCentroid 
+    dev_array<int> d_startppCentroid(largeDescriptor.rows());
+    d_startppCentroid.set(&startppCentroid[0],largeDescriptor.rows());
+    //Times 4 because pcl alignment x,y,z + extra byte
+    // This has data for orientation, keypoint and affordance id
+    dev_array<float> d_ppCData(largeData->size()*4);
+    d_ppCData.set(&largeData->at(0).getArray3fMap()[0],largeData->size()*4);
+
+    // GPU stuff in PCL
+    // Container for indices in NN-search. Same size as decscriptor since 1-NN for every
+    // keypoint in descriptor
+    pcl::gpu::NeighborIndices result_device(largeDescriptor.rows(), 1);
+    // Octree for NN search: cloud and structure
+    pcl::gpu::Octree::PointCloud cloud_device2;
+    pcl::gpu::Octree octree_device2;
+    // Container for descriptor keypoints (point queries)
+    pcl::gpu::Octree::Queries queries_device;
+    
+    
+/////////////////APO: SEARCH FOR MATCHES
+    // For "frame rate"
+    pcl::console::TicToc tt;
+    ppsecond = std::clock();
+    
+    int points_tested=0;
+    int max_cloud=0;
+    // Test point counter
+    int i=0;    
+
+
+
+
+    
+
 }
