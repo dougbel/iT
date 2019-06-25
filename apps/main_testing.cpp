@@ -18,11 +18,11 @@ int main(int argc, char *argv[])
     IT_Testing testing("../../test/testing_data", "testing.json");
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr scene( new pcl::PointCloud<pcl::PointXYZ> );
-    std::string file_scene = "../../test/calculation_data/scene_object.pcd";
+    std::string file_scene = "../../test/testing_data/kitchen5_d.pcd";
     
     pcl::io::loadPCDFile(file_scene, *scene );
     
-    testing.testInteractions(scene);
+    testing.testInteractions("kitchen",scene);
 
    
    

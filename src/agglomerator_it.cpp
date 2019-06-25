@@ -86,9 +86,11 @@ void Agglomerator_IT::compileAgglomeration()
     }
     
     this->sumMags = std::accumulate(pvNormsMapped.begin(),pvNormsMapped.end(), 0.0f);
-    this->alternative_data_counts = 1/this->sumMags;                 // NOOOOO SÉ, en el codigo original se trata de la suma de mags
+    this->alternative_data_count = 1/this->sumMags;           // inverse of SUM of MAPPED provenance vectors NORM [1,0] 
     
-    //std::cout << data_individual << std::endl;
+    std::cout << data_individual << std::endl;
+    std::cout << sumMags << std::endl;
+    std::cout << alternative_data_count << std::endl;
 }
 
 Agglomerator_IT Agglomerator_IT::loadFiles(std::string path, std::string affordance_name, std::string object_name, int sampleSize, int numOrientations)

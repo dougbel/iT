@@ -33,7 +33,7 @@ public:
     std::vector<int> startppCentroid;
     std::vector<float> large_mags;        //provenance vector NORM of the point asociated in the sample
     std::vector<float> large_lengths;     //MAPPED provenance vector NORM to [1, 0]
-    float alternative_data_counts;        // NOOOOO SÉ, en el codigo original se trata de la suma de mags
+    float alternative_data_count;        // NOOOOO SÉ, en el codigo original se trata de la suma de mags
     
     std::vector<float> pvNormsMapped;
     std::vector<float> pvNorms;

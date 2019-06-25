@@ -51,9 +51,10 @@ message(STATUS "IBS_HEADERS_DIR = ${IBS_HEADERS_DIR}")
 message(STATUS "IBS_SOURCES     = ${IBS_SOURCES}")
 message(STATUS "IT_DIR          = ${IT_DIR}")
 message(STATUS "IT_SOURCES_DIR  = ${IT_SOURCES_DIR}")
+message(STATUS "IT_SOURCES      = ${IT_SOURCES}")
 message(STATUS "IT_HEADERS_DIR  = ${IT_HEADERS_DIR}")
 message(STATUS "IT_TESTING_HEADERS_DIR=${IT_TESTING_HEADERS_DIR}")
-message(STATUS "IT_SOURCES      = ${IT_SOURCES}")
+message(STATUS "IT_TESTING_SOURCES=${IT_TESTING_SOURCES}")
 message(STATUS "CMAKE_BINARY_DIR= ${CMAKE_BINARY_DIR}")
 
 
@@ -70,12 +71,31 @@ include_directories(  ${PCL_INCLUDE_DIRS}
                       ${CUDA_INCLUDE_DIRS}   )
 
 
-                      
+# VTK and CUDA do not get along 
+# so manually remove _vtk_definitions from path at compilation
+# as shown in PCL examples
+# get_directory_property(_dir_defs DIRECTORY ${CMAKE_SOURCE_DIR} COMPILE_DEFINITIONS)
+# set(_vtk_definitions)
+# foreach(_item ${_dir_defs})
+#         if(_item MATCHES "vtk*")
+#                 list(APPEND _vtk_definitions -D${_item})
+#         endif()
+# endforeach()
+# remove_definitions(${_vtk_definitions})
+
+set_directory_properties( PROPERTIES COMPILE_DEFINITIONS "" )
+
+
                       
 #build libraries and cuda files to use
-CUDA_ADD_LIBRARY(dev_array   SHARED   ${IT_TESTING_HEADERS_DIR}/dev_array.h )
 
+CUDA_ADD_LIBRARY(myCuda SHARED ${IT_TESTING_HEADERS_DIR}/myCuda.cu)
+TARGET_LINK_LIBRARIES(myCuda ${CUDA_LIBRARIES} )
+
+CUDA_ADD_LIBRARY(dev_array   SHARED   ${IT_TESTING_HEADERS_DIR}/dev_array.h )
 TARGET_LINK_LIBRARIES(dev_array   ${CUDA_LIBRARIES} )
+
+
 
 
 

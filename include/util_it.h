@@ -11,10 +11,12 @@
 #include <pcl/surface/mls.h>
 #include <pcl/surface/poisson.h>
 #include <pcl/filters/passthrough.h>
+#include <pcl/filters/extract_indices.h>
 #include <pcl/PolygonMesh.h>
 #include <pcl/surface/gp3.h>
 #include <pcl/io/vtk_io.h>
 #include <pcl/kdtree/kdtree_flann.h>
+
 
 #include "type_point_it.h"
 
@@ -495,6 +497,11 @@ public:
     }
 
 
+    /**
+     * @brief Return the  working directory asociated with the iteraction "affordance_name" having a "object_name"
+     *  
+     * @return The working directory 
+     */
     static std::string getWorkingDirectory(std::string affordance_name, std::string object_name)
     {
         std::string aff_path ;
@@ -502,6 +509,44 @@ public:
         aff_path = affordance_name + "/";                      //TODO this could be change by the hash string info
         
         return aff_path; 
+    }
+    
+
+    /**
+     * @brief Copy EigenMatrix data to Pointcloud structure
+     * 
+     * @return The point cloud
+     */
+    static pcl::PointCloud <pcl::PointXYZ>::Ptr copyAsPointCloud(Eigen::MatrixXf *matrixData)
+    {   
+        pcl::PointCloud <pcl::PointXYZ>::Ptr out(new pcl::PointCloud <pcl::PointXYZ>);
+        
+        for(int i=0;i<matrixData->rows();i++){
+            out->push_back(pcl::PointXYZ(matrixData->coeff(i,0),matrixData->coeff(i,1),matrixData->coeff(i,2)));
+        }
+        
+        return out;
+        
+    }
+    
+    
+    /**
+     * @brief Extracts a pointcloud from a larger pointcloud given index pass by arguments
+     * 
+     * @param indices A integers vector with index of point to extract from point cloud
+     * @param inCloud The input point cloud
+     * @param inCloud The output point cloud
+     */
+    static void extractCloud(std::vector<int> indices,  pcl::PointCloud <pcl::PointXYZ>::Ptr inCloud,  pcl::PointCloud <pcl::PointXYZ>::Ptr outCloud)
+    {
+        pcl::ExtractIndices<pcl::PointXYZ> extract;
+        pcl::PointIndices::Ptr cIndices (new pcl::PointIndices);
+        
+        cIndices->indices = indices;
+        
+        extract.setInputCloud(inCloud);
+        extract.setIndices(cIndices);
+        extract.filter(*outCloud);
     }
 
     
