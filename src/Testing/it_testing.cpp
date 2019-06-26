@@ -129,7 +129,7 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
         random_sampler.filter(*sample_scene);
     }
     else 
-        pcl::io::loadPCDFile("../../test/testing_data/01_testing_sample.pcd", *sample_scene);
+        pcl::io::loadPCDFile("../../test/testing_data/for_testing/01_testing_sample.pcd", *sample_scene);
   
     
     //to keep track progress

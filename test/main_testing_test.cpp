@@ -34,19 +34,6 @@ void distanceXYZRGBClouds(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud1, pcl::Po
     
     
 }
-/*
-float distanceRGBClouds(pcl::PointCloud<pcl::PointXYZRGB> cloud1, pcl::PointCloud<pcl::PointXYZRGB> cloud2){
-    float distance =0;
-    
-    for(int i =0; i < cloud1.size(); i++){
-        
-        distance += Eigen::Vector3f(  cloud1.points[i].r - cloud2.points[ i ].r, 
-                                            cloud1.points[i].g - cloud2.points[ i ].g, 
-                                            cloud1.points[i].b - cloud2.points[ i ].b ).norm();
-    }
-    
-    return distance;
-}*/
 
 
 int main(int argc, char *argv[])
@@ -58,11 +45,11 @@ int main(int argc, char *argv[])
    std::string time_stamp;
    
    
-    IT_Testing testing("../../test/testing_data", "testing.json");
+    IT_Testing testing("../../test/testing_data/for_testing", "01_testing.json");
     testing.toTest = true;
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr scene( new pcl::PointCloud<pcl::PointXYZ> );
-    std::string file_scene = "../../test/testing_data/kitchen5_d.pcd";
+    std::string file_scene = "../../test/testing_data/scenes/kitchen5_d.pcd";
     
     pcl::io::loadPCDFile(file_scene, *scene );
     
@@ -79,9 +66,9 @@ int main(int argc, char *argv[])
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr goodPoints_precalculated(new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr goodPoints(new pcl::PointCloud<pcl::PointXYZRGB>);
    
-   pcl::io::loadPCDFile("../../test/testing_data/01_goodPoints.pcd", *goodPoints_precalculated);
+   pcl::io::loadPCDFile("../../test/testing_data/for_testing/01_testing_goodPoints.pcd", *goodPoints_precalculated);
   
-   file_name = "../../test/testing_data/output/"+time_stamp+"_goodPoints.pcd";
+   file_name = "../../test/testing_data/for_testing/output/"+time_stamp+"_goodPoints.pcd";
    pcl::io::loadPCDFile(file_name, *goodPoints);
    
    distanceXYZRGBClouds(goodPoints_precalculated, goodPoints, distance, distance_rgb );
@@ -103,9 +90,9 @@ int main(int argc, char *argv[])
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr goodPointsX_precalculated(new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr goodPointsX(new pcl::PointCloud<pcl::PointXYZRGB>);
    
-   pcl::io::loadPCDFile("../../test/testing_data/01_goodPointsX.pcd", *goodPointsX_precalculated);
+   pcl::io::loadPCDFile("../../test/testing_data/for_testing/01_testing_goodPointsX.pcd", *goodPointsX_precalculated);
    
-   file_name  = "../../test/testing_data/output/"+time_stamp+"_goodPointsX.pcd";
+   file_name  = "../../test/testing_data/for_testing/output/"+time_stamp+"_goodPointsX.pcd";
    pcl::io::loadPCDFile(file_name, *goodPointsX);
    
    distanceXYZRGBClouds(goodPointsX_precalculated, goodPointsX, distance, distance_rgb );
@@ -128,9 +115,9 @@ int main(int argc, char *argv[])
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr samplePoints_precalculated(new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr samplePoints(new pcl::PointCloud<pcl::PointXYZRGB>);
    
-   pcl::io::loadPCDFile("../../test/testing_data/01_samplePoints.pcd", *samplePoints_precalculated);
+   pcl::io::loadPCDFile("../../test/testing_data/for_testing/01_testing_samplePoints.pcd", *samplePoints_precalculated);
    
-   file_name = "../../test/testing_data/output/"+time_stamp+"_samplePoints.pcd";
+   file_name = "../../test/testing_data/for_testing/output/"+time_stamp+"_samplePoints.pcd";
    pcl::io::loadPCDFile( file_name, *samplePoints);
    
    distanceXYZRGBClouds(samplePoints_precalculated, samplePoints, distance, distance_rgb );
@@ -152,9 +139,9 @@ int main(int argc, char *argv[])
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr alldata_precalculated(new pcl::PointCloud<pcl::PointXYZRGB>);
    pcl::PointCloud<pcl::PointXYZRGB>::Ptr alldata(new pcl::PointCloud<pcl::PointXYZRGB>);
     
-   pcl::io::loadPCDFile("../../test/testing_data/01_Place_bowl_kitchen5_d.pcd", *alldata_precalculated);
+   pcl::io::loadPCDFile("../../test/testing_data/for_testing/01_testing_Place_bowl_kitchen5_d.pcd", *alldata_precalculated);
    
-   file_name = "../../test/testing_data/output/"+time_stamp+"_Place_bowl_kitchen.pcd";
+   file_name = "../../test/testing_data/for_testing/output/"+time_stamp+"_Place_bowl_kitchen.pcd";
    pcl::io::loadPCDFile( file_name, *alldata);
    
    distanceXYZRGBClouds(alldata_precalculated, alldata, distance, distance_rgb );
