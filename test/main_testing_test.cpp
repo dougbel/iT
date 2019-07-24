@@ -158,6 +158,7 @@ int main(int argc, char *argv[])
         std::cout << "TEST on alldata SUCCESS!" <<std::endl <<std::endl;
     }
     
+    std::cout << "ERASE  ../../test/testing_data/for_testing/output   TO AVOID CONFUSIONS" << std::endl;
     
     return EXIT_SUCCESS;
 }

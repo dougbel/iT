@@ -297,8 +297,7 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
     
     int points_tested=0;
     int max_cloud=0;
-    // Test point counter
-    int i=0;
+   
     int progress = 0;
     
     pcl::PointCloud<pcl::PointXYZ>::Ptr auxCloud;    // Clear the pointcloud that will store the voxel extracted from scene
@@ -306,7 +305,7 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
     auxCloud.reset(new pcl::PointCloud<pcl::PointXYZ>);
     
 
-    while(i < topCount)
+    for ( int i=0 ; i < topCount ; i++)
     {
 
         
@@ -374,7 +373,10 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
         // ignore those
         // I think this is a bug during the data capturing in real scenes
         if(sampledPoint.x==0 && sampledPoint.y==0 && sampledPoint.z==0) 
-        continue;
+        {
+            std::cout <<"Sample point avoided idx_sample: " << i << " =(0,0,0)" << std::endl;
+            continue;
+        }
         // This is a copy of the descriptor that will be
         // moving around tom compute scores
         Eigen::MatrixXf moving_descriptor(largeDescriptor.rows(),3);
@@ -456,6 +458,7 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
             voxelOutcome = octree->radiusSearch(sampledPoint, 0.5*object_diags_size[0], pointIdxVec,pointRadiusSquaredDistance );
             if( pointIdxVec.size() < 2)
             {
+                std::cout << "Not enough point in radius search idx_sample: " << i << std::endl;
                 cloud_device2.release();
                 result_device.data.release();
                 continue;
@@ -513,9 +516,9 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
         // Copy NN data to a pointcloud structure, there could be
         // repeated indices
         pcl::PointCloud<pcl::PointXYZ>::Ptr local_nn(new pcl::PointCloud<pcl::PointXYZ>);;
-        for(int i=0;i<downloaded.size();i++)
+        for(int ind=0;ind<downloaded.size();ind++)
         {
-            local_nn->push_back( auxCloud->at( downloaded.at(i) ) );
+            local_nn->push_back( auxCloud->at( downloaded.at(ind) ) );
         }
 
     /////////////////APO: GPU Compute scores with a kernel
@@ -725,8 +728,7 @@ std::string IT_Testing::testInteractions(std::string scn_name, pcl::PointCloud<p
         cloud_device2.release();
         result_device.data.release();
 
-        // get the next test-point
-        i+=1;
+        
     }
     std::cout<<" 100"<<std::endl;
 
@@ -958,8 +960,9 @@ std::string IT_Testing::saveClouds( std::string scn_name, std::string affordance
         file_name = output_path + now + "_" + affordance_name + "_" + ob_name + "_NoConv_" + scn_name + "_" + ".pcd";
         std::cout << "File name example: " << file_name << std::endl;
         pcl::PointCloud<pcl::PointXYZRGB>::Ptr no_points(new pcl::PointCloud<pcl::PointXYZRGB>);
-        pcl::io::savePCDFileBinaryCompressed(file_name,*no_points);
-        
+//        pcl::io::savePCDFile(file_name,*no_points);
+        std::ofstream outfile (file_name);
+        outfile.close();
         
         
         pcl::copyPointCloud(*sample,*sampleColor);

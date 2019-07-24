@@ -2,6 +2,7 @@
 #define IT_TESTING_H
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <ctime>
 
